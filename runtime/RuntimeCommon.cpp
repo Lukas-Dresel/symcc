@@ -33,7 +33,10 @@ std::array<SymExpr, kMaxFunctionArguments> g_function_arguments;
 
 } // namespace
 
-void _sym_set_return_expression(SymExpr expr) { g_return_value = expr; }
+void _sym_set_return_expression(SymExpr expr) {
+  _sym_notify_ret_expr(expr);
+  g_return_value = expr;
+}
 
 SymExpr _sym_get_return_expression(void) {
   auto *result = g_return_value;
@@ -43,6 +46,7 @@ SymExpr _sym_get_return_expression(void) {
 }
 
 void _sym_set_parameter_expression(uint8_t index, SymExpr expr) {
+  _sym_notify_param_expr(index, expr);
   g_function_arguments[index] = expr;
 }
 

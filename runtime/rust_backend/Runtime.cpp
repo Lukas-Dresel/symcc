@@ -306,9 +306,21 @@ SymExpr _sym_extract_helper(SymExpr expr, size_t first_bit, size_t last_bit) {
 
 size_t _sym_bits_helper(SymExpr expr) { return symexpr_width(expr); }
 
-void _sym_notify_call(uintptr_t loc) { _rsym_notify_call(loc); }
-void _sym_notify_ret(uintptr_t loc) { _rsym_notify_ret(loc); }
-void _sym_notify_basic_block(uintptr_t loc) { _rsym_notify_basic_block(loc); }
+void _sym_notify_call(uintptr_t loc) {
+  _rsym_notify_call(loc);
+}
+void _sym_notify_ret(uintptr_t loc) {
+  _rsym_notify_ret(loc);
+}
+void _sym_notify_basic_block(uintptr_t loc) {
+  _rsym_notify_basic_block(loc);
+}
+void _sym_notify_param_expr(uint8_t index, SymExpr expr) {
+  _rsym_notify_param_expr(index, symexpr_id(expr));
+}
+void _sym_notify_ret_expr(SymExpr expr) {
+  _rsym_notify_ret_expr(symexpr_id(expr));
+}
 
 /* Debugging */
 const char *_sym_expr_to_string(SymExpr) { return nullptr; }

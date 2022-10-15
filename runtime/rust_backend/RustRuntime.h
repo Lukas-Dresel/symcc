@@ -137,6 +137,8 @@ RSymExpr _rsym_get_input_byte(size_t offset);
 void _rsym_notify_call(uintptr_t site_id);
 void _rsym_notify_ret(uintptr_t site_id);
 void _rsym_notify_basic_block(uintptr_t site_id);
+void _rsym_notify_param_expr(uint8_t index, RSymExpr expr);
+void _rsym_notify_ret_expr(RSymExpr expr);
 
 /*
  * Garbage collection

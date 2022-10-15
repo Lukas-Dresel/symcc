@@ -165,6 +165,8 @@ SymExpr _sym_build_extract(SymExpr expr, uint64_t offset, uint64_t length,
 void _sym_notify_call(uintptr_t site_id);
 void _sym_notify_ret(uintptr_t site_id);
 void _sym_notify_basic_block(uintptr_t site_id);
+void _sym_notify_param_expr(uint8_t index, SymExpr expr);
+void _sym_notify_ret_expr(SymExpr expr);
 
 /*
  * Debugging
