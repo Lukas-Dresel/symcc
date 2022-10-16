@@ -14,6 +14,7 @@
 
 #include <Runtime.h>
 
+#include <iostream>
 #include <array>
 #include <cassert>
 #include <numeric>
@@ -86,12 +87,14 @@ void _sym_memmove(uint8_t *dest, const uint8_t *src, size_t length) {
     std::copy(srcShadow.begin(), srcShadow.end(), destShadow.begin());
 }
 
+#define P(ptr) reinterpret_cast<void *>(ptr)
 SymExpr _sym_read_memory(uint8_t *addr, size_t length, bool little_endian) {
   assert(length && "Invalid query for zero-length memory region");
 
-#ifdef DEBUG_RUNTIME
+
   std::cerr << "Reading " << length << " bytes from address " << P(addr)
             << std::endl;
+#ifdef DEBUG_RUNTIME
   dump_known_regions();
 #endif
 
@@ -117,9 +120,10 @@ void _sym_write_memory(uint8_t *addr, size_t length, SymExpr expr,
                        bool little_endian) {
   assert(length && "Invalid query for zero-length memory region");
 
-#ifdef DEBUG_RUNTIME
   std::cerr << "Writing " << length << " bytes to address " << P(addr)
             << std::endl;
+
+#ifdef DEBUG_RUNTIME
   dump_known_regions();
 #endif
 
