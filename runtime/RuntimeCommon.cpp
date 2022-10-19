@@ -36,7 +36,9 @@ std::array<SymExpr, kMaxFunctionArguments> g_function_arguments;
 
 void _sym_set_return_expression(SymExpr expr) {
   // print out the expression
-  printf("return expression: %p\n", expr);
+  if (expr) {
+    printf("return expression: %p\n", expr);
+  }
 
   _sym_notify_ret_expr(expr);
   g_return_value = expr;
