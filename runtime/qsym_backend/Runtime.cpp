@@ -364,6 +364,12 @@ void _sym_notify_basic_block(uintptr_t site_id) {
   g_call_stack_manager.visitBasicBlock(site_id);
 }
 
+void _sym_notify_param_expr(uint8_t index, SymExpr expr) {
+}
+
+void _sym_notify_ret_expr(SymExpr expr) {
+}
+
 //
 // Debugging
 //
