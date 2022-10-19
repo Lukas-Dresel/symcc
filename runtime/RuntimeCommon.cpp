@@ -38,9 +38,8 @@ void _sym_set_return_expression(SymExpr expr) {
   // print out the expression
   if (expr) {
     printf("return expression: %p\n", expr);
+  _ sym_notify_ret_expr(expr);
   }
-
-  _sym_notify_ret_expr(expr);
   g_return_value = expr;
 }
 
