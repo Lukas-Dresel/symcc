@@ -557,7 +557,7 @@ void Symbolizer::visitGetElementPtrInst(GetElementPtrInst &I) {
       if (auto indexWidth = index->getType()->getIntegerBitWidth();
           indexWidth != ptrBits) {
         symbolicComputation.merge(forceBuildRuntimeCall(
-            IRB, runtime.buildZExt,
+            IRB, runtime.buildSExt,
             {{index, true},
              {ConstantInt::get(IRB.getInt8Ty(), ptrBits - indexWidth),
               false}}));
