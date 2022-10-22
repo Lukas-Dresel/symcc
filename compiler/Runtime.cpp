@@ -70,8 +70,10 @@ Runtime::Runtime(Module &M) {
   buildBoolOr = import(M, "_sym_build_bool_or", ptrT, ptrT, ptrT);
   buildBoolXor = import(M, "_sym_build_bool_xor", ptrT, ptrT, ptrT);
   buildBoolToBits = import(M, "_sym_build_bool_to_bits", ptrT, ptrT, int8T);
-  pushPathConstraint = import(M, "_sym_push_path_constraint", voidT, ptrT,
-                              IRB.getInt1Ty(), intPtrType);
+  pushPathConstraint = import(M, "_sym_push_path_constraint", voidT, ptrT, IRB.getInt1Ty(), intPtrType);
+
+  concretizePointer = import(M, "_sym_concretize_pointer", ptrT, ptrT, ptrT, intPtrType);
+  concretizeSize = import(M, "_sym_concretize_size", ptrT, ptrT, intPtrType, intPtrType);
 
   setParameterExpression =
       import(M, "_sym_set_parameter_expression", voidT, int8T, ptrT);

@@ -471,6 +471,17 @@ void _sym_push_path_constraint(Z3_ast constraint, int taken,
   Z3_dec_ref(g_context, not_constraint);
 }
 
+void _sym_concretize_pointer(SymExpr value, void* ptr, uintptr_t site_id ) {
+  SymExpr pointer_expr = _sym_build_integer((uintptr_t)ptr, 64);
+  SymExpr constraint = _sym_build_equal(value, pointer_expr);
+  _sym_push_path_constraint(constraint, 1, site_id);
+}
+void _sym_concretize_size(SymExpr value, size_t sz, uintptr_t site_id) {
+  SymExpr size_expr = _sym_build_integer((uintptr_t)sz, 64);
+  SymExpr constraint = _sym_build_equal(value, size_expr);
+  _sym_push_path_constraint(constraint, 1, site_id);
+}
+
 SymExpr _sym_concat_helper(SymExpr a, SymExpr b) {
   return registerExpression(Z3_mk_concat(g_context, a, b));
 }

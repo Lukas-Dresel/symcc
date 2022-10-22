@@ -270,8 +270,13 @@ private:
       registerSymbolicComputation(*computation, concrete);
   }
 
-  /// Generate code that makes the solver try an alternative value for V.
-  void tryAlternative(llvm::IRBuilder<> &IRB, llvm::Value *V);
+  /// Register a concretization of a pointer, normally, this should prompt the solver to try other values here
+  /// this happens on memset, memcpy, memmove, etc. and memory loads and stores
+  void concretizePointer(llvm::IRBuilder<> &IRB, llvm::Value* P);
+
+  /// Register a concretization of a size, normally, this should prompt the solver to try other values here
+  /// this happens on memset, memcpy, memmove, etc.
+  void concretizeSize(llvm::IRBuilder<> &IRB, llvm::Value* S);
 
   /// Helper to use a pointer to a host object as integer (truncating!).
   ///

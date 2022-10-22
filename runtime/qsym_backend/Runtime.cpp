@@ -288,7 +288,18 @@ void _sym_push_path_constraint(SymExpr constraint, int taken,
 
   g_solver->addJcc(allocatedExpressions.at(constraint), taken != 0, site_id);
 }
-
+void _sym_concretize_pointer(SymExpr expr, void* p, uintptr_t site_id) {
+  if (expr == nullptr)
+    return;
+  auto constraint = _sym_build_equal(expr, _sym_build_integer((uintptr_t)p, 64));
+  _sym_push_path_constraint(constraint, 1, site_id);
+}
+void _sym_concretize_size(SymExpr expr, size_t sz, uintptr_t site_id) {
+  if (expr == nullptr)
+    return;
+  auto constraint = _sym_build_equal(expr, _sym_build_integer(sz, 64));
+  _sym_push_path_constraint(constraint, 1, site_id);
+}
 SymExpr _sym_get_input_byte(size_t offset) {
   return registerExpression(g_expr_builder->createRead(offset));
 }

@@ -146,6 +146,12 @@ void _sym_push_path_constraint(SymExpr constraint, int taken,
 SymExpr _sym_get_input_byte(size_t offset);
 
 /*
+ * Concretization
+ */
+void _sym_concretize_pointer(SymExpr value, void* ptr, uintptr_t site_id);
+void _sym_concretize_size(SymExpr value, size_t sz, uintptr_t site_id);
+
+/*
  * Memory management
  */
 SymExpr _sym_read_memory(uint8_t *addr, size_t length, bool little_endian);

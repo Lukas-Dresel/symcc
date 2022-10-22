@@ -194,9 +194,9 @@ void Symbolizer::handleIntrinsicCall(CallBase &I) {
   case Intrinsic::memcpy: {
     IRBuilder<> IRB(&I);
 
-    tryAlternative(IRB, I.getOperand(0));
-    tryAlternative(IRB, I.getOperand(1));
-    tryAlternative(IRB, I.getOperand(2));
+    concretizePointer(IRB, I.getOperand(0));
+    concretizePointer(IRB, I.getOperand(1));
+    concretizeSize(IRB, I.getOperand(2));
 
     // The intrinsic allows both 32 and 64-bit integers to specify the length;
     // convert to the right type if necessary. This may truncate the value on
@@ -211,8 +211,8 @@ void Symbolizer::handleIntrinsicCall(CallBase &I) {
   case Intrinsic::memset: {
     IRBuilder<> IRB(&I);
 
-    tryAlternative(IRB, I.getOperand(0));
-    tryAlternative(IRB, I.getOperand(2));
+    concretizePointer(IRB, I.getOperand(0));
+    concretizeSize(IRB, I.getOperand(2));
 
     // The comment on memcpy's length parameter applies analogously.
 
@@ -225,9 +225,9 @@ void Symbolizer::handleIntrinsicCall(CallBase &I) {
   case Intrinsic::memmove: {
     IRBuilder<> IRB(&I);
 
-    tryAlternative(IRB, I.getOperand(0));
-    tryAlternative(IRB, I.getOperand(1));
-    tryAlternative(IRB, I.getOperand(2));
+    concretizePointer(IRB, I.getOperand(0));
+    concretizePointer(IRB, I.getOperand(1));
+    concretizeSize(IRB, I.getOperand(2));
 
     // The comment on memcpy's length parameter applies analogously.
 
@@ -314,7 +314,7 @@ void Symbolizer::handleFunctionCall(CallBase &I, Instruction *returnPoint) {
   IRB.CreateCall(runtime.notifyCall, getTargetPreferredInt(&I));
 
   if (callee == nullptr)
-    tryAlternative(IRB, I.getCalledOperand());
+    concretizePointer(IRB, I.getCalledOperand());
 
   for (Use &arg : I.args())
     IRB.CreateCall(runtime.setParameterExpression,
@@ -427,7 +427,7 @@ void Symbolizer::visitBranchInst(BranchInst &I) {
 
 void Symbolizer::visitIndirectBrInst(IndirectBrInst &I) {
   IRBuilder<> IRB(&I);
-  tryAlternative(IRB, I.getAddress());
+  concretizePointer(IRB, I.getAddress());
 }
 
 void Symbolizer::visitCallInst(CallInst &I) {
@@ -458,7 +458,7 @@ void Symbolizer::visitLoadInst(LoadInst &I) {
   IRBuilder<> IRB(&I);
 
   auto *addr = I.getPointerOperand();
-  tryAlternative(IRB, addr);
+  concretizePointer(IRB, addr);
 
   auto *dataType = I.getType();
   auto *data = IRB.CreateCall(
@@ -478,7 +478,7 @@ void Symbolizer::visitLoadInst(LoadInst &I) {
 void Symbolizer::visitStoreInst(StoreInst &I) {
   IRBuilder<> IRB(&I);
 
-  tryAlternative(IRB, I.getPointerOperand());
+  concretizePointer(IRB, I.getPointerOperand());
 
   auto *data = getSymbolicExpressionOrNull(I.getValueOperand());
   auto *dataType = I.getValueOperand()->getType();
@@ -905,19 +905,34 @@ Symbolizer::forceBuildRuntimeCall(IRBuilder<> &IRB, SymFnT function,
   return SymbolicComputation(call, call, inputs);
 }
 
-void Symbolizer::tryAlternative(IRBuilder<> &IRB, Value *V) {
+// void Symbolizer::tryAlternative(IRBuilder<> &IRB, Value *V) {
+//   auto *destExpr = getSymbolicExpression(V);
+//   if (destExpr == nullptr) {
+//     return;
+//   }
+//   auto *concreteDestExpr = createValueExpression(V, IRB);
+//   auto *destAssertion =
+//       IRB.CreateCall(runtime.comparisonHandlers[CmpInst::ICMP_EQ],
+//                       {destExpr, concreteDestExpr});
+//   auto *pushAssertion = IRB.CreateCall(
+//       runtime.pushPathConstraint,
+//       {destAssertion, IRB.getInt1(true), getTargetPreferredInt(V)});
+//   registerSymbolicComputation(SymbolicComputation(
+//       concreteDestExpr, pushAssertion, {{V, 0, destAssertion}}));
+// }
+void Symbolizer::concretizePointer(IRBuilder<> &IRB, Value* V) {
   auto *destExpr = getSymbolicExpression(V);
-  if (destExpr != nullptr) {
-    auto *concreteDestExpr = createValueExpression(V, IRB);
-    auto *destAssertion =
-        IRB.CreateCall(runtime.comparisonHandlers[CmpInst::ICMP_EQ],
-                       {destExpr, concreteDestExpr});
-    auto *pushAssertion = IRB.CreateCall(
-        runtime.pushPathConstraint,
-        {destAssertion, IRB.getInt1(true), getTargetPreferredInt(V)});
-    registerSymbolicComputation(SymbolicComputation(
-        concreteDestExpr, pushAssertion, {{V, 0, destAssertion}}));
+  if (destExpr == nullptr) {
+    return;
   }
+  IRB.CreateCall(runtime.concretizePointer, {destExpr, V, getTargetPreferredInt(V)});
+}
+void Symbolizer::concretizeSize(IRBuilder<> &IRB, Value* V) {
+  auto *destExpr = getSymbolicExpression(V);
+  if (destExpr == nullptr) {
+    return;
+  }
+  IRB.CreateCall(runtime.concretizeSize, {destExpr, V, getTargetPreferredInt(V)});
 }
 
 uint64_t Symbolizer::aggregateMemberOffset(Type *aggregateType,

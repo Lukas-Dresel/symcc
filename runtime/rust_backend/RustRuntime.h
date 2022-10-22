@@ -125,6 +125,18 @@ RSymExpr _rsym_concat_helper(RSymExpr a, RSymExpr b);
 RSymExpr _rsym_extract_helper(RSymExpr expr, size_t first_bit, size_t last_bit);
 
 /*
+ * Memory operations
+ */
+RSymExpr _rsym_read_memory(RSymExpr address, size_t length, bool little_endian);
+RSymExpr _rsym_write_memory(RSymExpr address, size_t length, RSymExpr expr, bool little_endian);
+
+/*
+ * Concretization
+ */
+RSymExpr _rsym_concretize_pointer(RSymExpr value, void* ptr, uintptr_t site_id);
+RSymExpr _rsym_concretize_size(RSymExpr value, size_t sz, uintptr_t site_id);
+
+/*
  * Constraint handling
  */
 void _rsym_push_path_constraint(RSymExpr constraint, bool taken,
