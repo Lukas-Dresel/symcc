@@ -292,6 +292,17 @@ void _sym_push_path_constraint(SymExpr constraint, int taken,
   _rsym_push_path_constraint(symexpr_id(constraint), taken, site_id);
 }
 
+void _sym_concretize_pointer(SymExpr expr, void* ptr, uintptr_t site_id) {
+  if (expr == 0)
+    return;
+  _rsym_concretize_pointer(symexpr_id(expr), (uintptr_t)ptr, site_id);
+}
+void _sym_concretize_size(SymExpr expr, size_t concrete_size, uintptr_t site_id) {
+  if (expr == 0)
+    return;
+  _rsym_concretize_size(symexpr_id(expr), concrete_size, site_id);
+}
+
 SymExpr _sym_concat_helper(SymExpr a, SymExpr b) {
   return registerExpression(
       symexpr(_rsym_concat_helper(symexpr_id(a), symexpr_id(b)),

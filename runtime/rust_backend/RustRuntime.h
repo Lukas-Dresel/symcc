@@ -133,7 +133,7 @@ void _rsym_write_memory(RSymExpr address, size_t length, RSymExpr expr, bool lit
 /*
  * Concretization
  */
-void _rsym_concretize_pointer(RSymExpr value, void* ptr, uintptr_t site_id);
+void _rsym_concretize_pointer(RSymExpr value, uintptr_t ptr, uintptr_t site_id);
 void _rsym_concretize_size(RSymExpr value, size_t sz, uintptr_t site_id);
 
 /*
