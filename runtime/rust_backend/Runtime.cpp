@@ -309,7 +309,7 @@ SymExpr _sym_backend_read_memory(
 ) {
   auto rust_expr = _rsym_backend_read_memory(
       symexpr_id(addr_expr), symexpr_id(concolic_read_value),
-      uint8_t* addr, length, little_endian
+      addr, length, little_endian
   );
   return registerExpression(symexpr(rust_expr, symexpr_width(concolic_read_value)));
 }
@@ -320,7 +320,7 @@ void _sym_backend_write_memory(
 ) {
   _rsym_backend_write_memory(
       symexpr_id(symbolic_addr_expr), symexpr_id(written_expr),
-      (uintptr_t)concrete_addr, concrete_length, little_endian
+      concrete_addr, concrete_length, little_endian
   );
 }
 
@@ -330,7 +330,7 @@ void _sym_backend_memcpy(
 ) {
   _rsym_backend_memcpy(
       symexpr_id(sym_dest), symexpr_id(sym_src), symexpr_id(sym_len),
-      (uintptr_t)dest, (uintptr_t)src, length
+      dest, src, length
   );
 }
 void _sym_backend_memset(
@@ -339,7 +339,7 @@ void _sym_backend_memset(
 ) {
   _rsym_backend_memset(
       symexpr_id(sym_dest), symexpr_id(sym_val), symexpr_id(sym_len),
-      (uintptr_t)memory, value, length
+      memory, value, length
   );
 }
 void _sym_backend_memmove(
@@ -348,7 +348,7 @@ void _sym_backend_memmove(
 ) {
   _rsym_backend_memmove(
       symexpr_id(sym_dest), symexpr_id(sym_src), symexpr_id(sym_len),
-      (uintptr_t)dest, (uintptr_t)src, length
+      dest, src, length
   );
 }
 
