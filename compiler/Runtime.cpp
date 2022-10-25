@@ -142,13 +142,47 @@ Runtime::Runtime(Module &M) {
 
 #undef LOAD_COMPARISON_HANDLER
 
-  memcpy = import(M, "_sym_memcpy", voidT, ptrT, ptrT, intPtrType);
-  memset = import(M, "_sym_memset", voidT, ptrT, ptrT, intPtrType);
-  memmove = import(M, "_sym_memmove", voidT, ptrT, ptrT, intPtrType);
+  memcpy = import(M, "_sym_memcpy",
+                  voidT, // retval: void
+                  ptrT, // sym_dest
+                  ptrT, // sym_src
+                  ptrT, // sym_size,
+                  ptrT, // concrete_dst
+                  ptrT, // concrete_src,
+                  intPtrType); // concrete_size
+  memset = import(M, "_sym_memset",
+                  voidT, // retval: void
+                  ptrT, // sym_dest
+                  ptrT, // sym_val
+                  ptrT, // sym_size,
+                  ptrT, // concrete_dst
+                  int8T, // concrete_val,
+                  intPtrType); // concrete_size
+  memmove = import(M, "_sym_memmove",
+                    voidT, // retval: void
+                    ptrT, // sym_dest
+                    ptrT, // sym_src
+                    ptrT, // sym_size,
+                    ptrT, // concrete_dst
+                    ptrT, // concrete_src,
+                    intPtrType); // concrete_size
+
   readMemory =
-      import(M, "_sym_read_memory", ptrT, intPtrType, intPtrType, int8T);
-  writeMemory = import(M, "_sym_write_memory", voidT, intPtrType, intPtrType,
-                       ptrT, int8T);
+      import(M, "_sym_read_memory",
+      ptrT,         // retval: expression returned from read
+      ptrT,         // symbolic address
+      intPtrType,   // concrete address
+      intPtrType,   // concrete size
+      int8T);       // bool little_endian
+
+  writeMemory = import(M, "_sym_write_memory",
+    voidT,        // retval: void
+    ptrT,         // symbolic_address_expr
+    ptrT,         // symbolic_value_expr
+    intPtrType,   // concrete address
+    intPtrType,   // size
+    int8T);       // bool little_endian
+
   buildInsert =
       import(M, "_sym_build_insert", ptrT, ptrT, ptrT, IRB.getInt64Ty(), int8T);
   buildExtract = import(M, "_sym_build_extract", ptrT, ptrT, IRB.getInt64Ty(),

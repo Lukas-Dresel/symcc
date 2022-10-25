@@ -148,18 +148,72 @@ SymExpr _sym_get_input_byte(size_t offset);
 /*
  * Concretization
  */
-void _sym_concretize_pointer(SymExpr value, void* ptr, uintptr_t site_id);
+void _sym_concretize_pointer(SymExpr value, const void* ptr, uintptr_t site_id);
 void _sym_concretize_size(SymExpr value, size_t sz, uintptr_t site_id);
 
 /*
- * Memory management
+ * Memory management, these should handle their concretizations on their own in the relevant backend
  */
-SymExpr _sym_read_memory(uint8_t *addr, size_t length, bool little_endian);
-void _sym_write_memory(uint8_t *addr, size_t length, SymExpr expr,
-                       bool little_endian);
-void _sym_memcpy(uint8_t *dest, const uint8_t *src, size_t length);
-void _sym_memset(uint8_t *memory, SymExpr value, size_t length);
-void _sym_memmove(uint8_t *dest, const uint8_t *src, size_t length);
+SymExpr _sym_read_memory(SymExpr symbolic_addr,
+                         uint8_t *addr, size_t length, bool little_endian);
+void _sym_write_memory( SymExpr symbolic_addr_expr, SymExpr written_expr,
+                        uint8_t *concrete_addr, size_t concrete_length, bool little_endian);
+
+void _sym_memcpy(
+    SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
+    uint8_t *dest, const uint8_t *src, size_t length);
+void _sym_memset(
+    SymExpr sym_dest, SymExpr sym_val, SymExpr sym_len,
+    uint8_t *memory, int value, size_t length);
+void _sym_memmove(
+    SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
+    uint8_t *dest, const uint8_t *src, size_t length);
+
+
+/*
+ * Backend memory operations (e.g. if you wanted to implement a fully symbolic memory model on top of the concolic trace)
+ * These functions are also responsible for adding the concretization constraints if desired
+ */
+
+/// @brief Causes a backend memory read, returning a new symbolic expression for the read value
+/// @param addr_expr
+/// @param concolic_read_value this is the value the concolic execution would return for this read, the default
+///                            implementation, should simply return this, however, you can instead choose to return
+///                            e.g. fresh values for reads
+/// @param addr                the concrete address of this read
+/// @param length              the length of this read (symbolic reads cannot occur here, they can only occur e.g. in memset)
+/// @param little_endian       the endianness of this value (`concolic_read_value` already complies with this)
+/// @return a SymExpr representing the result of the read. If you don't want to implement a more complex memory model,
+///         just return `concolic_read_value` here and concretize addr
+
+SymExpr _sym_backend_read_memory(
+    SymExpr addr_expr, SymExpr concolic_read_value,
+    uint8_t* addr, size_t length, bool little_endian);
+
+/// @brief Registers a symbolic write in the backend, again, symbolic sizes here are not supported, see, e.g., the
+///        `memset` special case below for cases where symbolic sizes are allowed
+/// @param symbolic_addr_expr the symbolic address expression, or nullptr if concrete
+/// @param written_expr       the value being written
+/// @param concrete_addr      the concrete address of this write
+/// @param concrete_length    the concrete length of this write
+/// @param little_endian      the endianness of this write
+// TODO: consider adding the concrete value being written here for the symbolic tracking if written_expr is NULL?
+void _sym_backend_write_memory(
+    SymExpr symbolic_addr_expr, SymExpr written_expr,
+    uint8_t *concrete_addr, size_t concrete_length, bool little_endian
+);
+
+void _sym_backend_memcpy(
+    SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
+    uint8_t* dest, const uint8_t* src, size_t length);
+void _sym_backend_memset(
+    SymExpr sym_dest, SymExpr sym_val, SymExpr sym_len,
+    uint8_t *memory, int value, size_t length);
+void _sym_backend_memmove(
+    SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
+    uint8_t *dest, const uint8_t *src, size_t length);
+
+
 SymExpr _sym_build_insert(SymExpr target, SymExpr to_insert, uint64_t offset,
                           bool little_endian);
 SymExpr _sym_build_extract(SymExpr expr, uint64_t offset, uint64_t length,

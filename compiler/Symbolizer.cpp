@@ -194,46 +194,48 @@ void Symbolizer::handleIntrinsicCall(CallBase &I) {
   case Intrinsic::memcpy: {
     IRBuilder<> IRB(&I);
 
-    concretizePointer(IRB, I.getOperand(0));
-    concretizePointer(IRB, I.getOperand(1));
-    concretizeSize(IRB, I.getOperand(2));
-
     // The intrinsic allows both 32 and 64-bit integers to specify the length;
     // convert to the right type if necessary. This may truncate the value on
     // 32-bit architectures. However, what's the point of specifying a length to
     // memcpy that is larger than your address space?
 
     IRB.CreateCall(runtime.memcpy,
-                   {I.getOperand(0), I.getOperand(1),
-                    IRB.CreateZExtOrTrunc(I.getOperand(2), intPtrType)});
+                   {
+                    getSymbolicExpressionOrNull(I.getOperand(0)), // symbolic_dest
+                    getSymbolicExpressionOrNull(I.getOperand(1)), // symbolic_src
+                    getSymbolicExpressionOrNull(I.getOperand(2)), // symbolic_size
+                    I.getOperand(0), I.getOperand(1),             // concrete_dest, concrete_src
+                    IRB.CreateZExtOrTrunc(I.getOperand(2), intPtrType)}); // concrete_size
     break;
   }
   case Intrinsic::memset: {
     IRBuilder<> IRB(&I);
 
-    concretizePointer(IRB, I.getOperand(0));
-    concretizeSize(IRB, I.getOperand(2));
-
     // The comment on memcpy's length parameter applies analogously.
 
     IRB.CreateCall(runtime.memset,
-                   {I.getOperand(0),
-                    getSymbolicExpressionOrNull(I.getOperand(1)),
-                    IRB.CreateZExtOrTrunc(I.getOperand(2), intPtrType)});
+                   {getSymbolicExpressionOrNull(I.getOperand(0)), // symbolic_dest
+                    getSymbolicExpressionOrNull(I.getOperand(1)), // symbolic_value
+                    getSymbolicExpressionOrNull(I.getOperand(2)), // symbolic_size
+                    I.getOperand(0),                              // concrete_dest
+                    // have to make sure the memset value is integer
+                    I.getOperand(1),                              // concrete_value
+                    IRB.CreateZExtOrTrunc(I.getOperand(2), intPtrType)}); // concrete_size
     break;
   }
   case Intrinsic::memmove: {
     IRBuilder<> IRB(&I);
 
-    concretizePointer(IRB, I.getOperand(0));
-    concretizePointer(IRB, I.getOperand(1));
-    concretizeSize(IRB, I.getOperand(2));
-
     // The comment on memcpy's length parameter applies analogously.
 
     IRB.CreateCall(runtime.memmove,
-                   {I.getOperand(0), I.getOperand(1),
-                    IRB.CreateZExtOrTrunc(I.getOperand(2), intPtrType)});
+                   {
+                    getSymbolicExpressionOrNull(I.getOperand(0)), // symbolic_dest
+                    getSymbolicExpressionOrNull(I.getOperand(1)), // symbolic_src
+                    getSymbolicExpressionOrNull(I.getOperand(2)), // symbolic_size
+                    I.getOperand(0),                              // concrete_dest
+                    I.getOperand(1),                              // concrete_src
+                    IRB.CreateZExtOrTrunc(I.getOperand(2), intPtrType)}); // concrete_size
     break;
   }
   case Intrinsic::stacksave: {
@@ -458,12 +460,13 @@ void Symbolizer::visitLoadInst(LoadInst &I) {
   IRBuilder<> IRB(&I);
 
   auto *addr = I.getPointerOperand();
-  concretizePointer(IRB, addr);
+  auto pointer_expr = getSymbolicExpressionOrNull(addr);
 
   auto *dataType = I.getType();
   auto *data = IRB.CreateCall(
       runtime.readMemory,
-      {IRB.CreatePtrToInt(addr, intPtrType),
+      {pointer_expr,
+       IRB.CreatePtrToInt(addr, intPtrType),
        ConstantInt::get(intPtrType, dataLayout.getTypeStoreSize(dataType)),
        ConstantInt::get(IRB.getInt8Ty(), isLittleEndian(dataType) ? 1 : 0)});
 
@@ -478,7 +481,8 @@ void Symbolizer::visitLoadInst(LoadInst &I) {
 void Symbolizer::visitStoreInst(StoreInst &I) {
   IRBuilder<> IRB(&I);
 
-  concretizePointer(IRB, I.getPointerOperand());
+  auto *addr_expr = I.getPointerOperand();
+  auto *symbolic_addr = getSymbolicExpressionOrNull(addr_expr);
 
   auto *data = getSymbolicExpressionOrNull(I.getValueOperand());
   auto *dataType = I.getValueOperand()->getType();
@@ -488,10 +492,11 @@ void Symbolizer::visitStoreInst(StoreInst &I) {
 
   IRB.CreateCall(
       runtime.writeMemory,
-      {IRB.CreatePtrToInt(I.getPointerOperand(), intPtrType),
-       ConstantInt::get(intPtrType, dataLayout.getTypeStoreSize(dataType)),
-       data,
-       ConstantInt::get(IRB.getInt8Ty(), dataLayout.isLittleEndian() ? 1 : 0)});
+      {symbolic_addr, // symbolic address
+       data,          // symbolic written data
+       IRB.CreatePtrToInt(I.getPointerOperand(), intPtrType),                     // concrete address
+       ConstantInt::get(intPtrType, dataLayout.getTypeStoreSize(dataType)),       // size
+       ConstantInt::get(IRB.getInt8Ty(), dataLayout.isLittleEndian() ? 1 : 0)});  // little_endian
 }
 
 void Symbolizer::visitGetElementPtrInst(GetElementPtrInst &I) {

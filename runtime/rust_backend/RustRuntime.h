@@ -127,9 +127,51 @@ RSymExpr _rsym_extract_helper(RSymExpr expr, size_t first_bit, size_t last_bit);
 /*
  * Memory operations
  */
-RSymExpr _rsym_read_memory(RSymExpr address, size_t length, bool little_endian);
+RSymExpr _rsym_read_memory(uintptr_t addr, size_t length, bool little_endian);
 void _rsym_write_memory(RSymExpr address, size_t length, RSymExpr expr, bool little_endian);
 
+/*
+ * Backend memory operations (if you want to implement a high-level symbolic memory on top of the concrete trace)
+ */
+/// @brief Causes a backend memory read, returning a new symbolic expression for the read value
+/// @param addr_expr
+/// @param concolic_read_value this is the value the concolic execution would return for this read, the default
+///                            implementation, should simply return this, however, you can instead choose to return
+///                            e.g. fresh values for reads
+/// @param addr                the concrete address of this read
+/// @param length              the length of this read (symbolic reads cannot occur here, they can only occur e.g. in memset)
+/// @param little_endian       the endianness of this value (`concolic_read_value` already complies with this)
+/// @return a SymExpr representing the result of the read. If you don't want to implement a more complex memory model,
+///         just return `concolic_read_value` here
+RSymExpr _rsym_backend_read_memory(
+    RSymExpr addr_expr, RSymExpr concolic_read_value,
+    uint8_t* addr, size_t length, bool little_endian
+);
+/// @brief Registers a symbolic write in the backend, again, symbolic sizes here are not supported, see, e.g., the
+///        `memset` special case below for cases where symbolic sizes are allowed
+/// @param symbolic_addr_expr the symbolic address expression, or nullptr if concrete
+/// @param written_expr       the value being written
+/// @param concrete_addr      the concrete address of this write
+/// @param concrete_length    the concrete length of this write
+/// @param little_endian      the endianness of this write
+// TODO: consider adding the concrete value being written here for the symbolic tracking if written_expr is NULL?
+void _rsym_backend_write_memory(
+    RSymExpr symbolic_addr_expr, RSymExpr written_expr,
+    uint8_t *concrete_addr, size_t concrete_length, bool little_endian
+);
+
+void _rsym_backend_memcpy(
+    RSymExpr sym_dest, RSymExpr sym_src, RSymExpr sym_len,
+    uint8_t* dest, const uint8_t* src, size_t length
+);
+void _rsym_backend_memset(
+    RSymExpr sym_dest, RSymExpr sym_val, RSymExpr sym_len,
+    uint8_t *memory, int value, size_t length
+);
+void _rsym_backend_memmove(
+    RSymExpr sym_dest, RSymExpr sym_src, RSymExpr sym_len,
+    uint8_t *dest, const uint8_t *src, size_t length
+);
 /*
  * Concretization
  */

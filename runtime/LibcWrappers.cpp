@@ -378,44 +378,52 @@ int SYM(ungetc)(int c, FILE *stream) {
 void *SYM(memcpy)(void *dest, const void *src, size_t n) {
   auto *result = memcpy(dest, src, n);
 
-  tryAlternative(dest, _sym_get_parameter_expression(0), SYM(memcpy));
-  tryAlternative(src, _sym_get_parameter_expression(1), SYM(memcpy));
-  tryAlternative(n, _sym_get_parameter_expression(2), SYM(memcpy));
+  auto sym_dest = _sym_get_parameter_expression(0);
+  auto sym_src = _sym_get_parameter_expression(1);
+  auto sym_n = _sym_get_parameter_expression(2);
 
-  _sym_memcpy(static_cast<uint8_t *>(dest), static_cast<const uint8_t *>(src),
-              n);
-  _sym_set_return_expression(_sym_get_parameter_expression(0));
+  _sym_memcpy(
+      sym_dest, sym_src, sym_n,
+      static_cast<uint8_t *>(dest), static_cast<const uint8_t *>(src), n);
+  _sym_set_return_expression(sym_dest);
   return result;
 }
 
 void *SYM(memset)(void *s, int c, size_t n) {
   auto *result = memset(s, c, n);
 
-  tryAlternative(s, _sym_get_parameter_expression(0), SYM(memset));
-  tryAlternative(n, _sym_get_parameter_expression(2), SYM(memset));
+  auto sym_dest = _sym_get_parameter_expression(0);
+  auto sym_c = _sym_get_parameter_expression(1);
+  auto sym_n = _sym_get_parameter_expression(2);
 
-  _sym_memset(static_cast<uint8_t *>(s), _sym_get_parameter_expression(1), n);
-  _sym_set_return_expression(_sym_get_parameter_expression(0));
+  _sym_memset(sym_dest, sym_c, sym_n,
+              static_cast<uint8_t *>(s), c, n);
+  _sym_set_return_expression(sym_dest);
   return result;
 }
 
 void *SYM(memmove)(void *dest, const void *src, size_t n) {
-  tryAlternative(dest, _sym_get_parameter_expression(0), SYM(memmove));
-  tryAlternative(src, _sym_get_parameter_expression(1), SYM(memmove));
-  tryAlternative(n, _sym_get_parameter_expression(2), SYM(memmove));
+  auto sym_dest = _sym_get_parameter_expression(0);
+  auto sym_src = _sym_get_parameter_expression(1);
+  auto sym_n = _sym_get_parameter_expression(2);
 
   auto *result = memmove(dest, src, n);
-  _sym_memmove(static_cast<uint8_t *>(dest), static_cast<const uint8_t *>(src),
-               n);
+  _sym_memmove(sym_dest, sym_src, sym_n,
+               static_cast<uint8_t *>(dest), static_cast<const uint8_t *>(src), n
+  );
 
-  _sym_set_return_expression(_sym_get_parameter_expression(0));
+  _sym_set_return_expression(sym_dest);
   return result;
 }
 
 char *SYM(strncpy)(char *dest, const char *src, size_t n) {
-  tryAlternative(dest, _sym_get_parameter_expression(0), SYM(strncpy));
-  tryAlternative(src, _sym_get_parameter_expression(1), SYM(strncpy));
-  tryAlternative(n, _sym_get_parameter_expression(2), SYM(strncpy));
+  auto sym_dest = _sym_get_parameter_expression(0);
+  auto sym_src = _sym_get_parameter_expression(1);
+  auto sym_n = _sym_get_parameter_expression(2);
+
+  _sym_concretize_pointer(sym_dest, dest, (uintptr_t)SYM(strncpy));
+  _sym_concretize_pointer(sym_src, src, (uintptr_t)SYM(strncpy));
+  _sym_concretize_size(sym_n, n, (uintptr_t)SYM(strncpy));
 
   auto *result = strncpy(dest, src, n);
   _sym_set_return_expression(nullptr);

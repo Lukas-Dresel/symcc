@@ -59,8 +59,16 @@ SymExpr _sym_get_parameter_expression(uint8_t index) {
   return g_function_arguments[index];
 }
 
-void _sym_memcpy(uint8_t *dest, const uint8_t *src, size_t length) {
-  if (isConcrete(src, length) && isConcrete(dest, length))
+void _sym_memcpy(
+  SymExpr sym_dst, SymExpr sym_src, SymExpr sym_size,
+  uint8_t *dest, const uint8_t *src, size_t length)
+{
+  bool symbolic_args = sym_dst || sym_src || sym_size;
+  bool symbolic_data = !isConcrete(src, length) || !isConcrete(dest, length);
+  if (symbolic_args || symbolic_data) {
+    _sym_backend_memcpy(sym_dst, sym_src, sym_size, dest, src, length);
+  }
+  if (!symbolic_data)
     return;
 
   ReadOnlyShadow srcShadow(src, length);
@@ -68,16 +76,31 @@ void _sym_memcpy(uint8_t *dest, const uint8_t *src, size_t length) {
   std::copy(srcShadow.begin(), srcShadow.end(), destShadow.begin());
 }
 
-void _sym_memset(uint8_t *memory, SymExpr value, size_t length) {
-  if ((value == nullptr) && isConcrete(memory, length))
+void _sym_memset(
+  SymExpr sym_dst, SymExpr sym_value, SymExpr sym_size,
+  uint8_t *memory, int value, size_t length
+) {
+  bool symbolic_args = sym_dst || sym_value || sym_size;
+  bool symbolic_data = !isConcrete(memory, length);
+  if (symbolic_args || symbolic_data) {
+    _sym_backend_memset(sym_dst, sym_value, sym_size, memory, value, length);
+  }
+  if ((sym_value == nullptr) && !symbolic_data) {
     return;
+  }
 
   ReadWriteShadow shadow(memory, length);
-  std::fill(shadow.begin(), shadow.end(), value);
+  std::fill(shadow.begin(), shadow.end(), sym_value);
 }
 
-void _sym_memmove(uint8_t *dest, const uint8_t *src, size_t length) {
-  if (isConcrete(src, length) && isConcrete(dest, length))
+void _sym_memmove(SymExpr sym_dst, SymExpr sym_src, SymExpr sym_size, uint8_t *dest, const uint8_t *src, size_t length)
+{
+  bool symbolic_args = sym_dst || sym_src || sym_size;
+  bool symbolic_data = !isConcrete(src, length) || !isConcrete(dest, length);
+  if (symbolic_args || symbolic_data) {
+    _sym_backend_memmove(sym_dst, sym_src, sym_size, dest, src, length);
+  }
+  if (!symbolic_data)
     return;
 
   ReadOnlyShadow srcShadow(src, length);
@@ -88,10 +111,10 @@ void _sym_memmove(uint8_t *dest, const uint8_t *src, size_t length) {
     std::copy(srcShadow.begin(), srcShadow.end(), destShadow.begin());
 }
 
-#define P(ptr) reinterpret_cast<void *>(ptr)
-SymExpr _sym_read_memory(uint8_t *addr, size_t length, bool little_endian) {
+SymExpr _sym_read_memory(
+  SymExpr symbolic_addr,
+  uint8_t *addr, size_t length, bool little_endian) {
   assert(length && "Invalid query for zero-length memory region");
-
 
 #ifdef DEBUG_RUNTIME
   std::cerr << "Reading " << length << " bytes from address " << P(addr)
@@ -101,25 +124,32 @@ SymExpr _sym_read_memory(uint8_t *addr, size_t length, bool little_endian) {
 
   // If the entire memory region is concrete, don't create a symbolic expression
   // at all.
-  if (isConcrete(addr, length))
+  bool symbolic_args = symbolic_addr != nullptr;
+  bool symbolic_data = !isConcrete(addr, length);
+  SymExpr read_value = nullptr;
+  if (symbolic_data)
+  {
+    ReadOnlyShadow shadow(addr, length);
+    read_value = std::accumulate(shadow.begin_non_null(), shadow.end_non_null(),
+                          static_cast<SymExpr>(nullptr),
+                          [&](SymExpr result, SymExpr byteExpr) {
+                            if (result == nullptr)
+                              return byteExpr;
+
+                            return little_endian
+                                        ? _sym_concat_helper(byteExpr, result)
+                                        : _sym_concat_helper(result, byteExpr);
+                          });
+  }
+  if (!symbolic_args && !symbolic_data) {
     return nullptr;
-
-  ReadOnlyShadow shadow(addr, length);
-  return std::accumulate(shadow.begin_non_null(), shadow.end_non_null(),
-                         static_cast<SymExpr>(nullptr),
-                         [&](SymExpr result, SymExpr byteExpr) {
-                           if (result == nullptr)
-                             return byteExpr;
-
-                           return little_endian
-                                      ? _sym_concat_helper(byteExpr, result)
-                                      : _sym_concat_helper(result, byteExpr);
-                         });
+  }
+  return _sym_backend_read_memory(symbolic_addr, read_value, addr, length, little_endian);
 }
 
-void _sym_write_memory(uint8_t *addr, size_t length, SymExpr expr,
-                       bool little_endian) {
-  assert(length && "Invalid query for zero-length memory region");
+void _sym_write_memory( SymExpr symbolic_addr_expr, SymExpr written_expr,
+                        uint8_t *concrete_addr, size_t concrete_length, bool little_endian) {
+  assert(concrete_length && "Invalid query for zero-length memory region");
 
 #ifdef DEBUG_RUNTIME
   std::cerr << "Writing " << length << " bytes to address " << P(addr)
@@ -128,19 +158,25 @@ void _sym_write_memory(uint8_t *addr, size_t length, SymExpr expr,
   dump_known_regions();
 #endif
 
-  if (expr == nullptr && isConcrete(addr, length))
+  bool symbolic_args = symbolic_addr_expr != nullptr || written_expr != nullptr;
+  bool symbolic_data = !isConcrete(concrete_addr, concrete_length);
+  if (symbolic_data || symbolic_args) {
+    _sym_backend_write_memory(symbolic_addr_expr, written_expr, concrete_addr, concrete_length, little_endian);
+  }
+
+  if (written_expr == nullptr && symbolic_data)
     return;
 
-  ReadWriteShadow shadow(addr, length);
-  if (expr == nullptr) {
+  ReadWriteShadow shadow(concrete_addr, concrete_length);
+  if (written_expr == nullptr) {
     std::fill(shadow.begin(), shadow.end(), nullptr);
   } else {
     size_t i = 0;
     for (SymExpr &byteShadow : shadow) {
       byteShadow = little_endian
-                       ? _sym_extract_helper(expr, 8 * (i + 1) - 1, 8 * i)
-                       : _sym_extract_helper(expr, (length - i) * 8 - 1,
-                                             (length - i - 1) * 8);
+                       ? _sym_extract_helper(written_expr, 8 * (i + 1) - 1, 8 * i)
+                       : _sym_extract_helper(written_expr, (concrete_length - i) * 8 - 1,
+                                             (concrete_length - i - 1) * 8);
       i++;
     }
   }

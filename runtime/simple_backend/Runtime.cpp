@@ -471,7 +471,7 @@ void _sym_push_path_constraint(Z3_ast constraint, int taken,
   Z3_dec_ref(g_context, not_constraint);
 }
 
-void _sym_concretize_pointer(SymExpr value, void* ptr, uintptr_t site_id ) {
+void _sym_concretize_pointer(SymExpr value, const void* ptr, uintptr_t site_id ) {
   SymExpr pointer_expr = _sym_build_integer((uintptr_t)ptr, 64);
   SymExpr constraint = _sym_build_equal(value, pointer_expr);
   _sym_push_path_constraint(constraint, 1, site_id);
@@ -481,6 +481,47 @@ void _sym_concretize_size(SymExpr value, size_t sz, uintptr_t site_id) {
   SymExpr constraint = _sym_build_equal(value, size_expr);
   _sym_push_path_constraint(constraint, 1, site_id);
 }
+
+SymExpr _sym_backend_read_memory(
+    SymExpr addr_expr, SymExpr concolic_read_value,
+    uint8_t* addr, size_t length [[maybe_unused]], bool little_endian [[maybe_unused]]
+) {
+  _sym_concretize_pointer(addr_expr, addr, 0);
+  return concolic_read_value;
+}
+
+void _sym_backend_write_memory(
+    SymExpr symbolic_addr_expr, SymExpr written_expr [[maybe_unused]],
+    uint8_t *concrete_addr, size_t concrete_length [[maybe_unused]], bool little_endian [[maybe_unused]]
+) {
+  _sym_concretize_pointer(symbolic_addr_expr, concrete_addr, 0);
+}
+
+void _sym_backend_memcpy(
+    SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
+    uint8_t* dest, const uint8_t* src, size_t length
+) {
+  _sym_concretize_pointer(sym_dest, dest, 0);
+  _sym_concretize_pointer(sym_src, src, 0);
+  _sym_concretize_size(sym_len, length, 0);
+}
+void _sym_backend_memset(
+    SymExpr sym_dest, SymExpr sym_val [[maybe_unused]], SymExpr sym_len,
+    uint8_t *memory, int value [[maybe_unused]], size_t length
+) {
+  _sym_concretize_pointer(sym_dest, memory, 0);
+  _sym_concretize_size(sym_len, length, 0);
+  // we don't concretize the value, it's not used in addressing
+}
+void _sym_backend_memmove(
+    SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
+    uint8_t *dest, const uint8_t *src, size_t length
+) {
+  _sym_concretize_pointer(sym_dest, dest, 0);
+  _sym_concretize_pointer(sym_src, src, 0);
+  _sym_concretize_size(sym_len, length, 0);
+}
+
 
 SymExpr _sym_concat_helper(SymExpr a, SymExpr b) {
   return registerExpression(Z3_mk_concat(g_context, a, b));

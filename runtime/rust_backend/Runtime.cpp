@@ -292,7 +292,7 @@ void _sym_push_path_constraint(SymExpr constraint, int taken,
   _rsym_push_path_constraint(symexpr_id(constraint), taken, site_id);
 }
 
-void _sym_concretize_pointer(SymExpr expr, void* ptr, uintptr_t site_id) {
+void _sym_concretize_pointer(SymExpr expr, const void* ptr, uintptr_t site_id) {
   if (expr == 0)
     return;
   _rsym_concretize_pointer(symexpr_id(expr), (uintptr_t)ptr, site_id);
@@ -302,6 +302,56 @@ void _sym_concretize_size(SymExpr expr, size_t concrete_size, uintptr_t site_id)
     return;
   _rsym_concretize_size(symexpr_id(expr), concrete_size, site_id);
 }
+
+SymExpr _sym_backend_read_memory(
+    SymExpr addr_expr, SymExpr concolic_read_value,
+    uint8_t* addr, size_t length, bool little_endian
+) {
+  auto rust_expr = _rsym_backend_read_memory(
+      symexpr_id(addr_expr), symexpr_id(concolic_read_value),
+      uint8_t* addr, length, little_endian
+  );
+  return registerExpression(symexpr(rust_expr, symexpr_width(concolic_read_value)));
+}
+
+void _sym_backend_write_memory(
+    SymExpr symbolic_addr_expr, SymExpr written_expr,
+    uint8_t *concrete_addr, size_t concrete_length, bool little_endian
+) {
+  _rsym_backend_write_memory(
+      symexpr_id(symbolic_addr_expr), symexpr_id(written_expr),
+      (uintptr_t)concrete_addr, concrete_length, little_endian
+  );
+}
+
+void _sym_backend_memcpy(
+    SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
+    uint8_t* dest, const uint8_t* src, size_t length
+) {
+  _rsym_backend_memcpy(
+      symexpr_id(sym_dest), symexpr_id(sym_src), symexpr_id(sym_len),
+      (uintptr_t)dest, (uintptr_t)src, length
+  );
+}
+void _sym_backend_memset(
+    SymExpr sym_dest, SymExpr sym_val, SymExpr sym_len,
+    uint8_t *memory, int value, size_t length
+) {
+  _rsym_backend_memset(
+      symexpr_id(sym_dest), symexpr_id(sym_val), symexpr_id(sym_len),
+      (uintptr_t)memory, value, length
+  );
+}
+void _sym_backend_memmove(
+    SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
+    uint8_t *dest, const uint8_t *src, size_t length
+) {
+  _rsym_backend_memmove(
+      symexpr_id(sym_dest), symexpr_id(sym_src), symexpr_id(sym_len),
+      (uintptr_t)dest, (uintptr_t)src, length
+  );
+}
+
 
 SymExpr _sym_concat_helper(SymExpr a, SymExpr b) {
   return registerExpression(
