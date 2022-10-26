@@ -141,9 +141,11 @@ SymExpr _sym_read_memory(
                                         : _sym_concat_helper(result, byteExpr);
                           });
   }
-  if (!symbolic_args && !symbolic_data) {
-    return nullptr;
+  else {
+    if (!symbolic_args) // the entire memory region is concrete and the address is concrete, exit without logging
+      return nullptr;
   }
+  assert(symbolic_addr != nullptr || read_value != nullptr);
   return _sym_backend_read_memory(symbolic_addr, read_value, addr, length, little_endian);
 }
 

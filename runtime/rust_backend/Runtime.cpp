@@ -311,7 +311,11 @@ SymExpr _sym_backend_read_memory(
       symexpr_id(addr_expr), symexpr_id(concolic_read_value),
       addr, length, little_endian
   );
-  return registerExpression(symexpr(rust_expr, symexpr_width(concolic_read_value)));
+  if (!rust_expr) {
+    return nullptr;
+  }
+  auto packed = symexpr(rust_expr, symexpr_width(concolic_read_value));
+  return registerExpression(packed);
 }
 
 void _sym_backend_write_memory(
