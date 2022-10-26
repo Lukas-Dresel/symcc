@@ -72,7 +72,11 @@ Runtime::Runtime(Module &M) {
   buildBoolToBits = import(M, "_sym_build_bool_to_bits", ptrT, ptrT, int8T);
   pushPathConstraint = import(M, "_sym_push_path_constraint", voidT, ptrT, IRB.getInt1Ty(), intPtrType);
 
-  concretizePointer = import(M, "_sym_concretize_pointer", ptrT, ptrT, ptrT, intPtrType);
+  concretizePointer = import(M, "_sym_concretize_pointer",
+    voidT, // this does not return anything, just adds the constraint that the variable have to be equal to the value
+    ptrT, // variable to concretize
+    ptrT, // value to concretize to
+    intPtrType); // site_id
   concretizeSize = import(M, "_sym_concretize_size", ptrT, ptrT, intPtrType, intPtrType);
 
   setParameterExpression =

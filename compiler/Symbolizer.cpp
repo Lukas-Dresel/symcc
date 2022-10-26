@@ -930,7 +930,9 @@ void Symbolizer::concretizePointer(IRBuilder<> &IRB, Value* V) {
   if (destExpr == nullptr) {
     return;
   }
-  IRB.CreateCall(runtime.concretizePointer, {destExpr, V, getTargetPreferredInt(V)});
+  auto castop = llvm::Instruction::CastOps::BitCast;
+  auto casted = IRB.CreateCast(castop, destExpr, IRB.getInt8PtrTy());
+  IRB.CreateCall(runtime.concretizePointer, {destExpr, casted, getTargetPreferredInt(V)});
 }
 void Symbolizer::concretizeSize(IRBuilder<> &IRB, Value* V) {
   auto *destExpr = getSymbolicExpression(V);

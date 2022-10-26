@@ -311,9 +311,6 @@ SymExpr _sym_backend_read_memory(
       symexpr_id(addr_expr), symexpr_id(concolic_read_value),
       addr, length, little_endian
   );
-  if (rust_expr == 0) {
-    return concolic_read_value;
-  }
   return registerExpression(symexpr(rust_expr, symexpr_width(concolic_read_value)));
 }
 

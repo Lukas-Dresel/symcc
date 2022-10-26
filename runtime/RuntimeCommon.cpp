@@ -164,8 +164,9 @@ void _sym_write_memory( SymExpr symbolic_addr_expr, SymExpr written_expr,
     _sym_backend_write_memory(symbolic_addr_expr, written_expr, concrete_addr, concrete_length, little_endian);
   }
 
-  if (written_expr == nullptr && symbolic_data)
+  if (written_expr == nullptr && !symbolic_data) {
     return;
+  }
 
   ReadWriteShadow shadow(concrete_addr, concrete_length);
   if (written_expr == nullptr) {
