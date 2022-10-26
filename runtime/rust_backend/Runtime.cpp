@@ -63,6 +63,7 @@ FILE *g_log = stderr;
 std::set<SymExpr> allocatedExpressions;
 
 SymExpr registerExpression(SymExpr expr) {
+  assert(expr != nullptr);
   allocatedExpressions.insert(expr);
   return expr;
 }
