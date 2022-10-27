@@ -308,6 +308,8 @@ SymExpr _sym_backend_read_memory(
     SymExpr addr_expr, SymExpr concolic_read_value,
     uint8_t* addr, size_t length, bool little_endian
 ) {
+  fprintf(stderr, "sym_backend_read_memory addr_expr: %p, concolic_read_value: %p, addr: %p, length: %zu, little_endian: %d\n", addr_expr, concolic_read_value, addr, length, little_endian);
+  assert(addr_expr != 0 || concolic_read_value != 0);
   auto rust_expr = _rsym_backend_read_memory(
       symexpr_id(addr_expr), symexpr_id(concolic_read_value),
       addr, length, little_endian
