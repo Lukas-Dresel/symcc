@@ -102,7 +102,9 @@ void _sym_initialize(void) {
 
   loadConfig();
   initLibcWrappers();
+#ifndef NDEBUG
   std::cerr << "This is SymCC running with the Rust backend" << std::endl;
+#endif
 
   if (g_config.logFile.empty()) {
     g_log = stderr;
