@@ -308,8 +308,20 @@ SymExpr _sym_backend_read_memory(
     SymExpr addr_expr, SymExpr concolic_read_value,
     uint8_t* addr, size_t length, bool little_endian
 ) {
-  fprintf(stderr, "sym_backend_read_memory addr_expr: %p, concolic_read_value: %p, addr: %p, length: %zu, little_endian: %d\n", addr_expr, concolic_read_value, addr, length, little_endian);
-  assert(addr_expr != 0 || concolic_read_value != 0);
+  // if (addr_expr == 0 && concolic_read_value == 0) {
+  //   ReadOnlyShadow shadow(addr, length);
+  //   auto concrete = isConcrete(addr, length);
+  //   auto shadow_begin = shadow.begin_non_null();
+  //   auto shadow_end = shadow.end_non_null();
+  //   fprintf(stderr,
+  //           "sym_backend_read_memory addr_expr: %p, concolic_read_value: %p, addr: %p, length: %zu, little_endian: %d\n",
+  //           addr_expr, concolic_read_value, addr, length, little_endian);
+  //   fprintf(stderr, "concrete: %d\n", concrete);
+  //   for (auto it = shadow_begin; it != shadow_end; ++it) {
+  //     fprintf(stderr, "shadow: %p\n", *it);
+  //   }
+  //   // abort();
+  // }
   auto rust_expr = _rsym_backend_read_memory(
       symexpr_id(addr_expr), symexpr_id(concolic_read_value),
       addr, length, little_endian
@@ -361,9 +373,9 @@ void _sym_backend_memmove(
 
 
 SymExpr _sym_concat_helper(SymExpr a, SymExpr b) {
-  return registerExpression(
-      symexpr(_rsym_concat_helper(symexpr_id(a), symexpr_id(b)),
-              symexpr_width(a) + symexpr_width(b)));
+  auto result = _rsym_concat_helper(symexpr_id(a), symexpr_id(b));
+  // printf("sym_concat_helper: %p..%p = %ld\n", a, b, result);
+  return registerExpression(symexpr(result, symexpr_width(a) + symexpr_width(b)));
 }
 
 SymExpr _sym_extract_helper(SymExpr expr, size_t first_bit, size_t last_bit) {

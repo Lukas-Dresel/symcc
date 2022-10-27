@@ -37,7 +37,7 @@ std::array<SymExpr, kMaxFunctionArguments> g_function_arguments;
 void _sym_set_return_expression(SymExpr expr) {
   // print out the expression
   if (expr) {
-    printf("return expression: %p\n", expr);
+    // printf("return expression: %p\n", expr);
     _sym_notify_ret_expr(expr);
   }
   g_return_value = expr;
@@ -129,10 +129,12 @@ SymExpr _sym_read_memory(
   SymExpr read_value = nullptr;
   if (symbolic_data)
   {
+    // printf("Trying to accumulate symbolic data\n");
     ReadOnlyShadow shadow(addr, length);
     read_value = std::accumulate(shadow.begin_non_null(), shadow.end_non_null(),
                           static_cast<SymExpr>(nullptr),
                           [&](SymExpr result, SymExpr byteExpr) {
+                            // printf("Accumulating %p into %p\n", byteExpr, result);
                             if (result == nullptr)
                               return byteExpr;
 

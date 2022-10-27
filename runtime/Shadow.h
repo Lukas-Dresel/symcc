@@ -204,6 +204,7 @@ template <typename T> struct ReadWriteShadow {
 template <typename T> bool isConcrete(T *addr, size_t nbytes) {
   // Fast path for allocations within one page.
   auto byteBuf = reinterpret_cast<uintptr_t>(addr);
+  // printf("isConcrete: %p, %zu\n", addr, nbytes);
   if (pageStart(byteBuf) == pageStart(byteBuf + nbytes) &&
       !g_shadow_pages.count(pageStart(byteBuf)))
     return true;
