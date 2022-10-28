@@ -113,11 +113,11 @@ void _sym_memmove(SymExpr sym_dst, SymExpr sym_src, SymExpr sym_size, uint8_t *d
 
 SymExpr _sym_read_memory(
   SymExpr symbolic_addr,
-  uint8_t *addr, size_t length, bool little_endian) {
+  uint8_t *host_addr, size_t length, bool little_endian) {
   assert(length && "Invalid query for zero-length memory region");
 
 #ifdef DEBUG_RUNTIME
-  std::cerr << "Reading " << length << " bytes from address " << P(addr)
+  std::cerr << "Reading " << length << " bytes from address " << P(host_addr)
             << std::endl;
   dump_known_regions();
 #endif
@@ -125,12 +125,12 @@ SymExpr _sym_read_memory(
   // If the entire memory region is concrete, don't create a symbolic expression
   // at all.
   bool symbolic_args = symbolic_addr != nullptr;
-  bool symbolic_data = !isConcrete(addr, length);
+  bool symbolic_data = !isConcrete(host_addr, length);
   SymExpr read_value = nullptr;
   if (symbolic_data)
   {
     // printf("Trying to accumulate symbolic data\n");
-    ReadOnlyShadow shadow(addr, length);
+    ReadOnlyShadow shadow(host_addr, length);
     read_value = std::accumulate(shadow.begin_non_null(), shadow.end_non_null(),
                           static_cast<SymExpr>(nullptr),
                           [&](SymExpr result, SymExpr byteExpr) {
@@ -148,31 +148,31 @@ SymExpr _sym_read_memory(
       return nullptr;
   }
   assert(symbolic_addr != nullptr || read_value != nullptr);
-  return _sym_backend_read_memory(symbolic_addr, read_value, addr, length, little_endian);
+  return _sym_backend_read_memory(symbolic_addr, read_value, host_addr, length, little_endian);
 }
 
 void _sym_write_memory( SymExpr symbolic_addr_expr, SymExpr written_expr,
-                        uint8_t *concrete_addr, size_t concrete_length, bool little_endian) {
+                        uint8_t *host_addr, size_t concrete_length, bool little_endian) {
   assert(concrete_length && "Invalid query for zero-length memory region");
 
 #ifdef DEBUG_RUNTIME
-  std::cerr << "Writing " << length << " bytes to address " << P(addr)
+  std::cerr << "Writing " << length << " bytes to address " << P(host_addr)
             << std::endl;
 
   dump_known_regions();
 #endif
 
   bool symbolic_args = symbolic_addr_expr != nullptr || written_expr != nullptr;
-  bool symbolic_data = !isConcrete(concrete_addr, concrete_length);
+  bool symbolic_data = !isConcrete(host_addr, concrete_length);
   if (symbolic_data || symbolic_args) {
-    _sym_backend_write_memory(symbolic_addr_expr, written_expr, concrete_addr, concrete_length, little_endian);
+    _sym_backend_write_memory(symbolic_addr_expr, written_expr, host_addr, concrete_length, little_endian);
   }
 
   if (written_expr == nullptr && !symbolic_data) {
     return;
   }
 
-  ReadWriteShadow shadow(concrete_addr, concrete_length);
+  ReadWriteShadow shadow(host_addr, concrete_length);
   if (written_expr == nullptr) {
     std::fill(shadow.begin(), shadow.end(), nullptr);
   } else {

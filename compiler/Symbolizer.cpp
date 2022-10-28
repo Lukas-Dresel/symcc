@@ -462,6 +462,8 @@ void Symbolizer::visitLoadInst(LoadInst &I) {
   auto *addr = I.getPointerOperand();
   auto pointer_expr = getSymbolicExpressionOrNull(addr);
 
+  concretizePointer(IRB, addr);
+
   auto *dataType = I.getType();
   auto *data = IRB.CreateCall(
       runtime.readMemory,
@@ -481,8 +483,10 @@ void Symbolizer::visitLoadInst(LoadInst &I) {
 void Symbolizer::visitStoreInst(StoreInst &I) {
   IRBuilder<> IRB(&I);
 
-  auto *addr_expr = I.getPointerOperand();
-  auto *symbolic_addr = getSymbolicExpressionOrNull(addr_expr);
+  auto *addr = I.getPointerOperand();
+  auto *symbolic_addr = getSymbolicExpressionOrNull(addr);
+
+  concretizePointer(IRB, addr);
 
   auto *data = getSymbolicExpressionOrNull(I.getValueOperand());
   auto *dataType = I.getValueOperand()->getType();
@@ -494,7 +498,7 @@ void Symbolizer::visitStoreInst(StoreInst &I) {
       runtime.writeMemory,
       {symbolic_addr, // symbolic address
        data,          // symbolic written data
-       IRB.CreatePtrToInt(I.getPointerOperand(), intPtrType),                     // concrete address
+       IRB.CreatePtrToInt(addr, intPtrType),                     // concrete address
        ConstantInt::get(intPtrType, dataLayout.getTypeStoreSize(dataType)),       // size
        ConstantInt::get(IRB.getInt8Ty(), dataLayout.isLittleEndian() ? 1 : 0)});  // little_endian
 }

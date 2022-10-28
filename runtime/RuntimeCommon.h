@@ -152,12 +152,14 @@ void _sym_concretize_pointer(SymExpr value, const void* ptr, uintptr_t site_id);
 void _sym_concretize_size(SymExpr value, size_t sz, uintptr_t site_id);
 
 /*
- * Memory management, these should handle their concretizations on their own in the relevant backend
+ * Memory management, ideally these would handle concretizations on their own in the relevant backend,
+ * but for now we have to rely on them being concretized in the frontend because SymQEMU passes us concrete host
+ * addresses and symbolic guest addresses.
  */
 SymExpr _sym_read_memory(SymExpr symbolic_addr,
-                         uint8_t *addr, size_t length, bool little_endian);
+                         uint8_t *host_addr, size_t length, bool little_endian);
 void _sym_write_memory( SymExpr symbolic_addr_expr, SymExpr written_expr,
-                        uint8_t *concrete_addr, size_t concrete_length, bool little_endian);
+                        uint8_t *host_addr, size_t concrete_length, bool little_endian);
 
 void _sym_memcpy(
     SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
@@ -180,15 +182,15 @@ void _sym_memmove(
 /// @param concolic_read_value this is the value the concolic execution would return for this read, the default
 ///                            implementation, should simply return this, however, you can instead choose to return
 ///                            e.g. fresh values for reads
-/// @param addr                the concrete address of this read
+/// @param host_addr                the concrete address of this read
 /// @param length              the length of this read (symbolic reads cannot occur here, they can only occur e.g. in memset)
 /// @param little_endian       the endianness of this value (`concolic_read_value` already complies with this)
 /// @return a SymExpr representing the result of the read. If you don't want to implement a more complex memory model,
-///         just return `concolic_read_value` here and concretize addr
+///         just return `concolic_read_value` here and concretize host_addr
 
 SymExpr _sym_backend_read_memory(
     SymExpr addr_expr, SymExpr concolic_read_value,
-    uint8_t* addr, size_t length, bool little_endian);
+    uint8_t* host_addr, size_t length, bool little_endian);
 
 /// @brief Registers a symbolic write in the backend, again, symbolic sizes here are not supported, see, e.g., the
 ///        `memset` special case below for cases where symbolic sizes are allowed
