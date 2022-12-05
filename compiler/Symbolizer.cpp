@@ -884,9 +884,11 @@ CallInst *Symbolizer::createValueExpression(Value *V, IRBuilder<> &IRB) {
 
     auto *memory = IRB.CreateAlloca(V->getType());
     IRB.CreateStore(V, memory);
+    auto pointer_expr = getSymbolicExpressionOrNull(memory);
     return IRB.CreateCall(
         runtime.readMemory,
-        {IRB.CreatePtrToInt(memory, intPtrType),
+        {pointer_expr,
+         IRB.CreatePtrToInt(memory, intPtrType),
          ConstantInt::get(intPtrType,
                           dataLayout.getTypeStoreSize(V->getType())),
          IRB.getInt8(0)});
