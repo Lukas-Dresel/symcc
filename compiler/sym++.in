@@ -45,7 +45,7 @@ else
     # It is important that the resulting binaries load libstdc++ before libc++;
     # otherwise our backend calls the instrumented library in cases where
     # exported names collide.
-    stdlib_cflags="-isystem ${!libcxx_var}/include/c++/v1 -nostdlib++"
+    stdlib_cflags="-nostdinc++ -nostdlib++ -isystem ${!libcxx_var}/include/c++/v1"
     stdlib_ldflags="-L${!libcxx_var}/lib -Wl,-rpath,${!libcxx_var}/lib -lstdc++ -lc++ -stdlib=libc++"
 fi
 
