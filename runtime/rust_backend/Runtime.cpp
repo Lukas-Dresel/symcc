@@ -92,6 +92,7 @@ SymExpr symexpr(RSymExpr expr, uint8_t width) {
 }
 } // namespace
 
+
 void _sym_initialize(void) {
   if (g_initialized.test_and_set())
     return;
