@@ -38,9 +38,14 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
+total_extra_cflags="$SYMCC_EXTRA_CFLAGS"
+total_extra_ldflags="$SYMCC_EXTRA_LDFLAGS"
+
 exec $compiler                                  \
      -Xclang -load -Xclang "$pass"              \
+     $total_extra_cflags                        \
      "$@"                                       \
+     $total_extra_ldflags                       \
      -L"$runtime_dir"                           \
      -lSymRuntime                               \
      -Wl,-rpath,"$runtime_dir"                  \
