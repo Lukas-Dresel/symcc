@@ -300,6 +300,64 @@ void _sym_concretize_size(SymExpr expr, size_t sz, uintptr_t site_id) {
   auto constraint = _sym_build_equal(expr, _sym_build_integer(sz, 64));
   _sym_push_path_constraint(constraint, 1, site_id);
 }
+
+SymExpr _sym_backend_read_memory(
+    SymExpr addr_expr, SymExpr concolic_read_value,
+    uint8_t* host_addr, size_t length, bool little_endian)
+{
+  (void)addr_expr;
+  (void)host_addr;
+  (void)length;
+  (void)little_endian;
+  return concolic_read_value;
+}
+
+void _sym_backend_write_memory(
+    SymExpr symbolic_addr_expr, SymExpr written_expr,
+    uint8_t *concrete_addr, size_t concrete_length, bool little_endian
+) {
+  (void)symbolic_addr_expr;
+  (void)written_expr;
+  (void)concrete_addr;
+  (void)concrete_length;
+  (void)little_endian;
+}
+void _sym_backend_memcpy(
+    SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
+    uint8_t* dest, const uint8_t* src, size_t length)
+{
+  (void)sym_dest;
+  (void)sym_src;
+  (void)sym_len;
+  (void)dest;
+  (void)src;
+  (void)length;
+}
+
+void _sym_backend_memset(
+    SymExpr sym_dest, SymExpr sym_val, SymExpr sym_len,
+    uint8_t *memory, int value, size_t length)
+{
+  (void)sym_dest;
+  (void)sym_val;
+  (void)sym_len;
+  (void)memory;
+  (void)value;
+  (void)length;
+}
+
+void _sym_backend_memmove(
+    SymExpr sym_dest, SymExpr sym_src, SymExpr sym_len,
+    uint8_t *dest, const uint8_t *src, size_t length)
+{
+  (void)sym_dest;
+  (void)sym_src;
+  (void)sym_len;
+  (void)dest;
+  (void)src;
+  (void)length;
+}
+
 SymExpr _sym_get_input_byte(size_t offset) {
   return registerExpression(g_expr_builder->createRead(offset));
 }
