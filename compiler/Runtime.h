@@ -49,7 +49,7 @@ struct Runtime {
   SymFnT buildBoolAnd{};
   SymFnT buildBoolOr{};
   SymFnT buildBoolXor{};
-  SymFnT buildBoolToBits{};
+  SymFnT buildBoolToBit{};
   SymFnT pushPathConstraint{};
   SymFnT concretizePointer{};
   SymFnT concretizeSize{};

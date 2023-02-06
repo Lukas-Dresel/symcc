@@ -40,9 +40,8 @@ fi
 
 total_extra_cflags="$SYMCC_EXTRA_CFLAGS"
 total_extra_ldflags="$SYMCC_EXTRA_LDFLAGS"
-
 exec $compiler                                  \
-     -Xclang -load -Xclang "$pass"              \
+     @CLANG_LOAD_PASS@"$pass"              \
      $total_extra_cflags                        \
      "$@"                                       \
      $total_extra_ldflags                       \

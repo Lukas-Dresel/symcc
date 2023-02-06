@@ -53,13 +53,11 @@ if [ $# -eq 0 ]; then
     echo "Use sym++ as a drop-in replacement for clang++, e.g., sym++ -O2 -o foo foo.cpp" >&2
     exit 1
 fi
-
 total_extra_cflags="$stdlib_cflags $SYMCC_EXTRA_CFLAGS"
 total_extra_ldflags="$stdlib_ldflags $SYMCC_EXTRA_LDFLAGS"
 
-
 exec $compiler                                  \
-     -Xclang -load -Xclang "$pass"              \
+     @CLANG_LOAD_PASS@"$pass"              \
      $total_extra_cflags                        \
      "$@"                                       \
      $total_extra_ldflags                       \

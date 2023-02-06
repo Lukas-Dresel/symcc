@@ -69,7 +69,7 @@ Runtime::Runtime(Module &M) {
   buildBoolAnd = import(M, "_sym_build_bool_and", ptrT, ptrT, ptrT);
   buildBoolOr = import(M, "_sym_build_bool_or", ptrT, ptrT, ptrT);
   buildBoolXor = import(M, "_sym_build_bool_xor", ptrT, ptrT, ptrT);
-  buildBoolToBits = import(M, "_sym_build_bool_to_bits", ptrT, ptrT, int8T);
+  buildBoolToBit = import(M, "_sym_build_bool_to_bit", ptrT, ptrT);
   pushPathConstraint = import(M, "_sym_push_path_constraint", voidT, ptrT, IRB.getInt1Ty(), intPtrType);
 
   concretizePointer = import(M, "_sym_concretize_pointer",
@@ -170,7 +170,6 @@ Runtime::Runtime(Module &M) {
                     ptrT, // concrete_dst
                     ptrT, // concrete_src,
                     intPtrType); // concrete_size
-
   readMemory =
       import(M, "_sym_read_memory",
       ptrT,         // retval: expression returned from read
@@ -186,7 +185,6 @@ Runtime::Runtime(Module &M) {
     intPtrType,   // concrete address
     intPtrType,   // size
     int8T);       // bool little_endian
-
   buildInsert =
       import(M, "_sym_build_insert", ptrT, ptrT, ptrT, IRB.getInt64Ty(), int8T);
   buildExtract = import(M, "_sym_build_extract", ptrT, ptrT, IRB.getInt64Ty(),
