@@ -53,13 +53,16 @@ impl AflMap {
 
     /// Load a map from disk.
     pub fn load(path: impl AsRef<Path>) -> Result<AflMap> {
-        let data = fs::read(&path).with_context(|| {
+        let mut data = fs::read(&path).with_context(|| {
             format!(
                 "Failed to read the AFL bitmap that \
                  afl-showmap should have generated at {}",
                 path.as_ref().display()
             )
         })?;
+        if data.len() < 65536 {
+            data.resize(65536, 0);
+        }
         ensure!(
             data.len() == 65536,
             "The file to load the coverage map from has the wrong size ({})",
