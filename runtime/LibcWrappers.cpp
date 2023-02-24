@@ -89,7 +89,7 @@ extern "C" {
 void *SYM(malloc)(size_t size) {
   auto *result = malloc(size);
 
-  tryAlternative(size, _sym_get_parameter_expression(0), SYM(malloc));
+  _sym_concretize_size(_sym_get_parameter_expression(0), size, (uintptr_t)SYM(malloc));
 
   _sym_set_return_expression(nullptr);
   return result;
@@ -98,8 +98,8 @@ void *SYM(malloc)(size_t size) {
 void *SYM(calloc)(size_t nmemb, size_t size) {
   auto *result = calloc(nmemb, size);
 
-  tryAlternative(nmemb, _sym_get_parameter_expression(0), SYM(calloc));
-  tryAlternative(size, _sym_get_parameter_expression(1), SYM(calloc));
+  _sym_concretize_size(_sym_get_parameter_expression(0), nmemb, (uintptr_t)SYM(calloc));
+  _sym_concretize_size(_sym_get_parameter_expression(1), size, (uintptr_t)SYM(calloc));
 
   _sym_set_return_expression(nullptr);
   return result;
@@ -112,7 +112,7 @@ void *SYM(mmap64)(void *addr, size_t len, int prot, int flags, int fildes,
                   uint64_t off) {
   auto *result = mmap64(addr, len, prot, flags, fildes, off);
 
-  tryAlternative(len, _sym_get_parameter_expression(1), SYM(mmap64));
+  _sym_concretize_size(_sym_get_parameter_expression(1), len, (uintptr_t)SYM(mmap64));
 
   _sym_set_return_expression(nullptr);
   return result;
@@ -134,8 +134,8 @@ int SYM(open)(const char *path, int oflag, mode_t mode) {
 }
 
 ssize_t SYM(read)(int fildes, void *buf, size_t nbyte) {
-  tryAlternative(buf, _sym_get_parameter_expression(1), SYM(read));
-  tryAlternative(nbyte, _sym_get_parameter_expression(2), SYM(read));
+  _sym_concretize_pointer(_sym_get_parameter_expression(1), buf, (uintptr_t)SYM(read));
+  _sym_concretize_size(_sym_get_parameter_expression(2), nbyte, (uintptr_t)SYM(read));
 
   auto result = read(fildes, buf, nbyte);
   _sym_set_return_expression(nullptr);
@@ -218,9 +218,9 @@ FILE *SYM(fopen64)(const char *pathname, const char *mode) {
 }
 
 size_t SYM(fread)(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-  tryAlternative(ptr, _sym_get_parameter_expression(0), SYM(fread));
-  tryAlternative(size, _sym_get_parameter_expression(1), SYM(fread));
-  tryAlternative(nmemb, _sym_get_parameter_expression(2), SYM(fread));
+  _sym_concretize_pointer(_sym_get_parameter_expression(0), ptr, (uintptr_t)SYM(fread));
+  _sym_concretize_size(_sym_get_parameter_expression(1), size, (uintptr_t)SYM(fread));
+  _sym_concretize_size(_sym_get_parameter_expression(2), nmemb, (uintptr_t)SYM(fread));
 
   auto result = fread(ptr, size, nmemb, stream);
   _sym_set_return_expression(nullptr);
@@ -238,8 +238,8 @@ size_t SYM(fread)(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 }
 
 char *SYM(fgets)(char *str, int n, FILE *stream) {
-  tryAlternative(str, _sym_get_parameter_expression(0), SYM(fgets));
-  tryAlternative(n, _sym_get_parameter_expression(1), SYM(fgets));
+  _sym_concretize_pointer(_sym_get_parameter_expression(0), str, (uintptr_t)SYM(fgets));
+  _sym_concretize_size(_sym_get_parameter_expression(1), n, (uintptr_t)SYM(fgets));
 
   auto result = fgets(str, n, stream);
   _sym_set_return_expression(_sym_get_parameter_expression(0));
@@ -267,7 +267,7 @@ void SYM(rewind)(FILE *stream) {
 }
 
 int SYM(fseek)(FILE *stream, long offset, int whence) {
-  tryAlternative(offset, _sym_get_parameter_expression(1), SYM(fseek));
+  _sym_concretize_size(_sym_get_parameter_expression(1), offset, (uintptr_t)SYM(fseek));
 
   auto result = fseek(stream, offset, whence);
   _sym_set_return_expression(nullptr);
@@ -285,7 +285,7 @@ int SYM(fseek)(FILE *stream, long offset, int whence) {
 }
 
 int SYM(fseeko)(FILE *stream, off_t offset, int whence) {
-  tryAlternative(offset, _sym_get_parameter_expression(1), SYM(fseeko));
+  _sym_concretize_size(_sym_get_parameter_expression(1), offset, (uintptr_t)SYM(fseeko));
 
   auto result = fseeko(stream, offset, whence);
   _sym_set_return_expression(nullptr);
@@ -303,7 +303,7 @@ int SYM(fseeko)(FILE *stream, off_t offset, int whence) {
 }
 
 int SYM(fseeko64)(FILE *stream, uint64_t offset, int whence) {
-  tryAlternative(offset, _sym_get_parameter_expression(1), SYM(fseeko64));
+  _sym_concretize_size(_sym_get_parameter_expression(1), offset, (uintptr_t)SYM(fseeko64));
 
   auto result = fseeko64(stream, offset, whence);
   _sym_set_return_expression(nullptr);
@@ -435,8 +435,8 @@ char *SYM(strncpy)(char *dest, const char *src, size_t n) {
 }
 
 const char *SYM(strchr)(const char *s, int c) {
-  tryAlternative(s, _sym_get_parameter_expression(0), SYM(strchr));
-  tryAlternative(c, _sym_get_parameter_expression(1), SYM(strchr));
+  _sym_concretize_pointer(_sym_get_parameter_expression(0), s, (uintptr_t)SYM(strchr));
+  _sym_concretize_size(_sym_get_parameter_expression(1), c, (uintptr_t)SYM(strchr));
 
   auto *result = strchr(s, c);
   _sym_set_return_expression(nullptr);
@@ -467,9 +467,9 @@ const char *SYM(strchr)(const char *s, int c) {
 }
 
 int SYM(memcmp)(const void *a, const void *b, size_t n) {
-  tryAlternative(a, _sym_get_parameter_expression(0), SYM(memcmp));
-  tryAlternative(b, _sym_get_parameter_expression(1), SYM(memcmp));
-  tryAlternative(n, _sym_get_parameter_expression(2), SYM(memcmp));
+  _sym_concretize_pointer(_sym_get_parameter_expression(0), a, (uintptr_t)SYM(memcmp));
+  _sym_concretize_pointer(_sym_get_parameter_expression(1), b, (uintptr_t)SYM(memcmp));
+  _sym_concretize_size(_sym_get_parameter_expression(2), n, (uintptr_t)SYM(memcmp));
 
   auto result = memcmp(a, b, n);
   _sym_set_return_expression(nullptr);
