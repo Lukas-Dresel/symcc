@@ -145,6 +145,10 @@ SymExpr _sym_get_return_expression(void);
  */
 void _sym_push_path_constraint(SymExpr constraint, int taken,
                                uintptr_t site_id);
+
+void _sym_push_switch_constraint(SymExpr constraint, int taken, uintptr_t site_id,
+                                 size_t index, size_t num_cases);
+
 SymExpr _sym_get_input_byte(size_t offset, uint8_t concrete_value);
 void _sym_make_symbolic(void *data, size_t byte_length, size_t input_offset);
 

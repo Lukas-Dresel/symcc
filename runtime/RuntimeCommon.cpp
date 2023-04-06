@@ -220,6 +220,41 @@ SymExpr _sym_build_bswap(SymExpr expr) {
   return _sym_build_extract(expr, 0, bits / 8, true);
 }
 
+struct cached_path_constraint {
+  SymExpr constraint;
+  int taken;
+  uintptr_t site_id;
+};
+
+static std::vector<cached_path_constraint> __cached_switch_case_constraints;
+void _sym_push_switch_constraint(SymExpr constraint, int taken, uintptr_t site_id,
+                                 size_t index, size_t num_cases) {
+  if (index == 0) {
+    assert(__cached_switch_case_constraints.empty() && "Cached constraints not empty");
+    __cached_switch_case_constraints.reserve(num_cases);
+  }
+  __cached_switch_case_constraints.push_back({constraint, taken, site_id});
+  if (index != num_cases - 1) {
+    return;
+  }
+  // Okay, now we push all of the `non-taken` constraints first so they aren't blocked by the taken one
+  cached_path_constraint *taken_constraint = NULL;
+  for (size_t i = 0; i < __cached_switch_case_constraints.size(); i++) {
+    if (!__cached_switch_case_constraints[i].taken) {
+      _sym_push_path_constraint(__cached_switch_case_constraints[i].constraint, __cached_switch_case_constraints[i].taken, __cached_switch_case_constraints[i].site_id);
+    }
+    else {
+      assert(taken_constraint == NULL && "Multiple taken constraints");
+      taken_constraint = &__cached_switch_case_constraints[i];
+    }
+  }
+  if (taken_constraint != NULL) {
+    // now at the end we push the taken constraint
+    _sym_push_path_constraint(taken_constraint->constraint, taken_constraint->taken, taken_constraint->site_id);
+  }
+  __cached_switch_case_constraints.clear();
+}
+
 SymExpr _sym_build_insert(SymExpr target, SymExpr to_insert, uint64_t offset,
                           bool little_endian) {
   size_t bitsToInsert = _sym_bits_helper(to_insert);

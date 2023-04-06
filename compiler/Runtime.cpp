@@ -71,6 +71,7 @@ Runtime::Runtime(Module &M) {
   buildBoolXor = import(M, "_sym_build_bool_xor", ptrT, ptrT, ptrT);
   buildBoolToBit = import(M, "_sym_build_bool_to_bit", ptrT, ptrT);
   pushPathConstraint = import(M, "_sym_push_path_constraint", voidT, ptrT, IRB.getInt1Ty(), intPtrType);
+  pushSwitchConstraint = import(M, "_sym_push_switch_constraint", voidT, ptrT, IRB.getInt64Ty(), intPtrType, intPtrType, intPtrType);
 
   concretizePointer = import(M, "_sym_concretize_pointer",
     voidT, // this does not return anything, just adds the constraint that the variable have to be equal to the value

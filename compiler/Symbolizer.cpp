@@ -818,13 +818,23 @@ void Symbolizer::visitSwitchInst(SwitchInst &I) {
 
   // In the constraint block, we push one path constraint per case.
   IRB.SetInsertPoint(constraintBlock);
+  int i = 0;
+  int num_cases = I.getNumCases();
+
   for (auto &caseHandle : I.cases()) {
     auto *caseTaken = IRB.CreateICmpEQ(condition, caseHandle.getCaseValue());
     auto *caseConstraint = IRB.CreateCall(
         runtime.comparisonHandlers[CmpInst::ICMP_EQ],
         {conditionExpr, createValueExpression(caseHandle.getCaseValue(), IRB)});
-    IRB.CreateCall(runtime.pushPathConstraint,
-                   {caseConstraint, caseTaken, getTargetPreferredInt(&I)});
+    IRB.CreateCall(runtime.pushSwitchConstraint,
+                   {
+                    caseConstraint,
+                    caseTaken,
+                    getTargetPreferredInt(&I),
+                    ConstantInt::get(intPtrType, i),
+                    ConstantInt::get(intPtrType, num_cases),
+                    });
+    i += 1;
   }
 }
 
