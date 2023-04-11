@@ -184,6 +184,7 @@ void Symbolizer::handleIntrinsicCall(CallBase &I) {
   case Intrinsic::lifetime_end:
   case Intrinsic::dbg_declare:
   case Intrinsic::dbg_value:
+  case Intrinsic::dbg_label:
   case Intrinsic::is_constant:
   case Intrinsic::trap:
   case Intrinsic::invariant_start:
