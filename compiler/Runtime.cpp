@@ -204,7 +204,7 @@ bool isInterceptedFunction(const Function &f) {
       "fseeko64", "getc",    "ungetc",  "memcpy", "memset", "strncpy", "strchr",
       "memcmp",   "memmove", "ntohl",   "fgets",  "fgetc", "getchar",
 
-      "bsearch", "qsort", // to handle the callbacks
+      "bsearch", "qsort", "qsort_r", // to handle the callbacks
       "bcmp", // to handle memcmp optimization which later gets replaced by `bcmp` which then gets inlined later without instrumentation (bad)
       "strcmp", "strncmp", // to handle comparisons
   };
