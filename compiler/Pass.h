@@ -31,6 +31,7 @@ public:
 
   bool doInitialization(llvm::Module &M) override;
   bool runOnFunction(llvm::Function &F) override;
+  bool doFinalization(llvm::Module &M) override;
 };
 
 #if LLVM_VERSION_MAJOR >= 13

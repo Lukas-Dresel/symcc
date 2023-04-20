@@ -14,6 +14,9 @@
 
 #include "Pass.h"
 
+#include <iostream>
+#include <fstream>
+
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Module.h>
@@ -41,6 +44,18 @@ namespace {
 static constexpr char kSymCtorName[] = "__sym_ctor";
 
 bool instrumentModule(Module &M) {
+  auto mod_name = M.getName().substr(M.getName().rfind("/") + 1).str();
+  // dump IL before to /tmp/llvm-ir-before-symcts_{f}.ll
+  std::string filename = "/tmp/llvm-ir-before-module-symcts_" + mod_name + ".ll";
+
+  std::error_code EC;
+  raw_fd_ostream OS(filename, EC);
+  if (EC) {
+    errs() << "Error opening file: " << EC.message() << "\n";
+    abort();
+  }
+
+  M.print(OS, nullptr);
   DEBUG(errs() << "Symbolizer module instrumentation\n");
 
   // Redirect calls to external functions to the corresponding wrappers and
@@ -57,10 +72,34 @@ bool instrumentModule(Module &M) {
       M, kSymCtorName, "_sym_initialize", {}, {});
   appendToGlobalCtors(M, ctor, 0);
 
+  // dump IL after to /tmp/llvm-ir-after-symcts_{f}.ll
+  std::string filename_after = "/tmp/llvm-ir-after-module-symcts_" + mod_name + ".ll";
+
+  raw_fd_ostream OS_after(filename_after, EC);
+  if (EC) {
+    errs() << "Error opening file: " << EC.message() << "\n";
+    abort();
+  }
+
+  M.print(OS_after, nullptr);
+
   return true;
 }
 
 bool instrumentFunction(Function &F) {
+
+  // dump IL before to /tmp/llvm-ir-before-symcts_{f}.ll
+  std::string filename = "/tmp/llvm-ir-before-function-symcts_" + F.getName().str() + ".ll";
+
+  std::error_code EC;
+  raw_fd_ostream OS(filename, EC);
+  if (EC) {
+    errs() << "Error opening file: " << EC.message() << "\n";
+    abort();
+  }
+
+  F.print(OS);
+
   auto functionName = F.getName();
   if (functionName == kSymCtorName)
     return false;
@@ -89,6 +128,18 @@ bool instrumentFunction(Function &F) {
   assert(!verifyFunction(F, &errs()) &&
          "SymbolizePass produced invalid bitcode");
 
+
+  // dump IL after to /tmp/llvm-ir-after-symcts_{f}.ll
+  std::string filename_after = "/tmp/llvm-ir-after-function-symcts_" + F.getName().str() + ".ll";
+
+  raw_fd_ostream OS_after(filename_after, EC);
+  if (EC) {
+    errs() << "Error opening file: " << EC.message() << "\n";
+    abort();
+  }
+
+  F.print(OS_after);
+
   return true;
 }
 
@@ -100,6 +151,22 @@ bool SymbolizeLegacyPass::doInitialization(Module &M) {
 
 bool SymbolizeLegacyPass::runOnFunction(Function &F) {
   return instrumentFunction(F);
+}
+
+bool SymbolizeLegacyPass::doFinalization(Module &M) {
+  auto mod_name = M.getName().substr(M.getName().rfind("/") + 1).str();
+  // dump IL before to /tmp/llvm-ir-before-symcts_{f}.ll
+  std::string filename = "/tmp/llvm-ir-after-module-symcts_" + mod_name + ".ll";
+
+  std::error_code EC;
+  raw_fd_ostream OS(filename, EC);
+  if (EC) {
+    errs() << "Error opening file: " << EC.message() << "\n";
+    abort();
+  }
+
+  M.print(OS, nullptr);
+  return false;
 }
 
 #if LLVM_VERSION_MAJOR >= 13
