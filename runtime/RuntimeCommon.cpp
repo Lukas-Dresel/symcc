@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <numeric>
 #include <stdexcept>
+#include <vector>
 #include <variant>
 
 #include "Config.h"
