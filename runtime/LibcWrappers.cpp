@@ -520,22 +520,8 @@ int SYM(strncmp)(const char *a, const char *b, size_t n) {
   return result;
 }
 int SYM(strcmp)(const char *a, const char *b) {
-  auto len_a = strlen(a);
-  auto len_b = strlen(b);
-  auto len_larger = len_a;
-  auto len_smaller = len_b;
-  if (len_b > len_a) {
-    len_larger = len_b;
-    len_smaller = len_a;
-  }
-  int result = SYM(strncmp)(a, b, len_smaller);
-  if (result != 0) {
-    return result;
-  }
-  if (len_a == len_b) {
-    return 0;
-  }
-  return len_a > len_b ? 1 : -1;
+  auto len = strlen(b) + 1;
+  return SYM(strncmp)(a, b, len);
 }
 
 uint32_t SYM(ntohl)(uint32_t netlong) {
