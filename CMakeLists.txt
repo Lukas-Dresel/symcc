@@ -126,4 +126,11 @@ endif()
 configure_file("compiler/symcc.in" "symcc" @ONLY)
 configure_file("compiler/sym++.in" "sym++" @ONLY)
 
+# set the AFL_DIR if not already set from environment to `realpath ${CMAKE_SOURCE_DIR}/../AFLPlusplus`
+if (NOT AFL_DIR)
+  get_filename_component(AFL_DIR "${CMAKE_SOURCE_DIR}/../AFLPlusplus" REALPATH)
+endif()
+configure_file("compiler/symcc-afl.in" "symcc-afl" @ONLY)
+configure_file("compiler/symcc-afl++.in" "symcc-afl++" @ONLY)
+
 add_subdirectory(test)

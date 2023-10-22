@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# This file is part of SymCC.
+#
+# SymCC is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# SymCC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# SymCC. If not, see <https://www.gnu.org/licenses/>.
+AFL_DIR="${AFL_DIR:-@AFL_DIR@}"
+pass="${AFL_DIR}/SanitizerCoveragePCGUARD.so"
+libcxx_var=AFLCC_LIBCXX_PATH
+compiler="${AFLCC_CLANGPP:-@CLANGPP_BINARY@}"
+
+if [[ -v AFLCC_REGULAR_LIBCXX ]]; then
+    stdlib_cflags=
+    stdlib_ldflags=
+elif [[ ! -v $libcxx_var ]]; then
+    >&2 echo "Please set $libcxx_var to the directory containing libc++ or confirm usage of the system library by setting AFLCC_REGULAR_LIBCXX!"
+    exit 255
+else
+    # It is important that the resulting binaries load libstdc++ before libc++;
+    # otherwise our backend calls the instrumented library in cases where
+    # exported names collide.
+    stdlib_cflags="-nostdinc++ -nostdlib++ -isystem ${!libcxx_var}/include/c++/v1"
+    stdlib_ldflags="-L${!libcxx_var}/lib -Wl,-rpath,${!libcxx_var}/lib -lstdc++ -lc++ -stdlib=libc++"
+fi
+
+if [ $# -eq 0 ]; then
+    echo "Use symcc-afl++ as a drop-in replacement for clang++, e.g., symcc-afl++ -O2 -o foo foo.cpp" >&2
+    exit 1
+fi
+total_extra_cflags="$stdlib_cflags $AFLCC_EXTRA_CFLAGS"
+total_extra_ldflags="$stdlib_ldflags $AFLCC_EXTRA_LDFLAGS"
+
+exec $compiler                                  \
+     @CLANG_LOAD_PASS@"$pass"              \
+     $total_extra_cflags                        \
+     "$@"                                       \
+     $total_extra_ldflags                       \
+     -Qunused-arguments

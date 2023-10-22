@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# This file is part of SymCC.
+#
+# SymCC is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# SymCC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# SymCC. If not, see <https://www.gnu.org/licenses/>.
+
+AFL_DIR="${AFL_DIR:-@AFL_DIR@}"
+# compiler is either $AFL_DIR/afl-clang-fast or $AFLCC_CLANG if set
+compiler="${AFLCC_CLANG:-$AFL_DIR/afl-clang-fast}"
+
+if [ $# -eq 0 ]; then
+    echo "Use symcc-afl as a drop-in replacement for clang, e.g., symcc-afl -O2 -o foo foo.c" >&2
+    exit 1
+fi
+
+total_extra_cflags="$AFLCC_EXTRA_CFLAGS"
+total_extra_ldflags="$AFLCC_EXTRA_LDFLAGS"
+set -x
+exec $compiler                                  \
+     $total_extra_cflags                        \
+     "$@"                                       \
+     $total_extra_ldflags                       \
+     -Qunused-arguments
