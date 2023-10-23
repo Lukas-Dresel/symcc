@@ -14,9 +14,8 @@
 # You should have received a copy of the GNU General Public License along with
 # SymCC. If not, see <https://www.gnu.org/licenses/>.
 AFL_DIR="${AFL_DIR:-@AFL_DIR@}"
-pass="${AFL_DIR}/SanitizerCoveragePCGUARD.so"
 libcxx_var=AFLCC_LIBCXX_PATH
-compiler="${AFLCC_CLANGPP:-@CLANGPP_BINARY@}"
+compiler="${AFLCC_CLANG:-$AFL_DIR/afl-clang-fast++}"
 
 if [[ -v AFLCC_REGULAR_LIBCXX ]]; then
     stdlib_cflags=
@@ -28,8 +27,14 @@ else
     # It is important that the resulting binaries load libstdc++ before libc++;
     # otherwise our backend calls the instrumented library in cases where
     # exported names collide.
-    stdlib_cflags="-nostdinc++ -nostdlib++ -isystem ${!libcxx_var}/include/c++/v1"
-    stdlib_ldflags="-L${!libcxx_var}/lib -Wl,-rpath,${!libcxx_var}/lib -lstdc++ -lc++ -stdlib=libc++"
+
+    stdlib_cflags="-nostdinc++ -nostdlib++"
+    stdlib_cflags="$stdlib_cflags -isystem ${!libcxx_var}/include/c++/v1"
+    stdlib_cflags="$stdlib_cflags -isystem ${!libcxx_var}/include/x86_64-unknown-linux-gnu/c++/v1"
+
+    stdlib_ldflags="-L${!libcxx_var}/lib -Wl,-rpath,${!libcxx_var}/lib"
+    stdlib_ldflags="$stdlib_ldflags -L${!libcxx_var}/lib/x86_64-unknown-linux-gnu -Wl,-rpath,${!libcxx_var}/lib/x86_64-unknown-linux-gnu"
+    stdlib_ldflags="$stdlib_ldflags -lstdc++ -lc++ -stdlib=libc++"
 fi
 
 if [ $# -eq 0 ]; then

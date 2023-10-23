@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# This file is part of SymCC.
+#
+# SymCC is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# SymCC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# SymCC. If not, see <https://www.gnu.org/licenses/>.
+
+AFL_DIR="${SYMCC_AFL_DIR:-@AFL_DIR@}"
+pass="${AFL_DIR}/SanitizerCoveragePCGUARD.so"
+compiler_rt="${AFL_DIR}/afl-compiler-rt.o"
+compiler="${AFLCC_CLANG:-@CLANG_BINARY@}"
+
+if [ $# -eq 0 ]; then
+    echo "Use symcc as a drop-in replacement for clang, e.g., symcc -O2 -o foo foo.c" >&2
+    exit 1
+fi
+
+total_extra_cflags="$SYMCC_EXTRA_CFLAGS"
+total_extra_ldflags="$SYMCC_EXTRA_LDFLAGS"
+set -x
+exec $compiler                                  \
+    -fexperimental-new-pass-manager \
+    "-fpass-plugin=${pass}" \
+     $total_extra_cflags                        \
+     "$compiler_rt"                              \
+     "$@"                                       \
+     $total_extra_ldflags                       \
+     -Qunused-arguments
+    #  -Xclang -load -Xclang "$pass"              \

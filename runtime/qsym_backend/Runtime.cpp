@@ -35,6 +35,8 @@
 #include <map>
 #include <unordered_set>
 #include <variant>
+#include <stdexcept>
+#include <execinfo.h>
 
 #if HAVE_FILESYSTEM
 #include <filesystem>
@@ -139,11 +141,26 @@ namespace fs = std::filesystem;
 #else
 namespace fs = std::experimental::filesystem;
 #endif
+void
+handler()
+{
+    void *trace_elems[20];
+    int trace_elem_count(backtrace( trace_elems, 20 ));
+    char **stack_syms(backtrace_symbols( trace_elems, trace_elem_count ));
+    for ( int i = 0 ; i < trace_elem_count ; ++i )
+    {
+        std::cout << stack_syms[i] << "\n";
+    }
+    free( stack_syms );
+
+    exit(1);
+}
 
 void _sym_initialize(void) {
   if (g_initialized.test_and_set())
     return;
 
+  std::set_terminate(handler);
   loadConfig();
   initLibcWrappers();
   std::cerr << "This is SymCC running with the QSYM backend" << std::endl;

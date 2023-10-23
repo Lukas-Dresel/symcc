@@ -14,32 +14,19 @@
 # You should have received a copy of the GNU General Public License along with
 # SymCC. If not, see <https://www.gnu.org/licenses/>.
 
-runtime_64bit_dir="${SYMCC_RUNTIME_DIR:-@SYM_RUNTIME_DIR@}"
-runtime_32bit_dir="${SYMCC_RUNTIME32_DIR:-@SYM_RUNTIME_32BIT_DIR@}"
-pass="${SYMCC_PASS_DIR:-@CMAKE_CURRENT_BINARY_DIR@}/libSymbolize.so"
-libcxx_var=SYMCC_LIBCXX_PATH
-compiler="${SYMCC_CLANGPP:-@CLANGPP_BINARY@}"
 
-# Find out if we're cross-compiling for a 32-bit architecture
-runtime_dir="$runtime_64bit_dir"
-for arg in "$@"; do
-    if [[ $arg == "-m32" ]]; then
-        if [ -z "$runtime_32bit_dir" ]; then
-            echo "SymCC: 32-bit compilation requested but SymCC was not built with TARGET_32BIT=ON" >&2
-            exit 255
-        else
-            runtime_dir="$runtime_32bit_dir"
-            libcxx_var=SYMCC_LIBCXX_32BIT_PATH
-            break
-        fi
-    fi
-done
+AFL_DIR="${SYMCC_AFL_DIR:-@AFL_DIR@}"
+pass="${AFL_DIR}/SanitizerCoveragePCGUARD.so"
+compiler_rt="${AFL_DIR}/afl-compiler-rt.o"
+compiler="${AFLCC_CLANGPP:-@CLANGPP_BINARY@}"
 
-if [[ -v SYMCC_REGULAR_LIBCXX ]]; then
+libcxx_var=AFLCC_LIBCXX_PATH
+
+if [[ -v AFLCC_REGULAR_LIBCXX ]]; then
     stdlib_cflags=
     stdlib_ldflags=
 elif [[ ! -v $libcxx_var ]]; then
-    >&2 echo "Please set $libcxx_var to the directory containing libc++ or confirm usage of the system library by setting SYMCC_REGULAR_LIBCXX!"
+    >&2 echo "Please set $libcxx_var to the directory containing libc++ or confirm usage of the system library by setting AFLCC_REGULAR_LIBCXX!"
     exit 255
 else
     # It is important that the resulting binaries load libstdc++ before libc++;
@@ -61,11 +48,10 @@ total_extra_cflags="$stdlib_cflags $SYMCC_EXTRA_CFLAGS"
 total_extra_ldflags="$stdlib_ldflags $SYMCC_EXTRA_LDFLAGS"
 
 exec $compiler                                  \
-     @CLANG_LOAD_PASS@"$pass"              \
+    -fexperimental-new-pass-manager             \
+    "-fpass-plugin=${pass}"                     \
      $total_extra_cflags                        \
+     "$compiler_rt"                             \
      "$@"                                       \
      $total_extra_ldflags                       \
-     -L"$runtime_dir"                           \
-     -lSymRuntime                               \
-     -Wl,-rpath,"$runtime_dir"                  \
      -Qunused-arguments
