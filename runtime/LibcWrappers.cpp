@@ -519,6 +519,44 @@ int SYM(strncmp)(const char *a, const char *b, size_t n) {
                             reinterpret_cast<uintptr_t>(SYM(strncmp)));
   return result;
 }
+
+int SYM(strncasecmp)(const char* a, const char* b, size_t n) {
+  _sym_concretize_pointer(_sym_get_parameter_expression(0), a, (uintptr_t)SYM(strncasecmp));
+  _sym_concretize_pointer(_sym_get_parameter_expression(1), b, (uintptr_t)SYM(strncasecmp));
+  _sym_concretize_size(_sym_get_parameter_expression(2), n, (uintptr_t)SYM(strncasecmp));
+
+  auto result = strncasecmp(a, b, n);
+  _sym_set_return_expression(nullptr);
+
+  auto real_len = std::min(n, std::min(strlen(a) + 1, strlen(b) + 1));
+
+  if (isConcrete(a, real_len) && isConcrete(b, real_len))
+    return result;
+
+  auto aShadowIt = ReadOnlyShadow(a, n).begin_non_null();
+  auto bShadowIt = ReadOnlyShadow(b, n).begin_non_null();
+  auto *allEqual = _sym_build_equal(*aShadowIt, *bShadowIt);
+  for (size_t i = 1; i < real_len; i++) {
+    ++aShadowIt;
+    ++bShadowIt;
+    auto lowercase_a_expr = _sym_build_and(
+      *aShadowIt,
+      _sym_build_integer(~0x20, 8)
+    );
+    auto lowercase_b_expr = _sym_build_and(
+      *bShadowIt,
+      _sym_build_integer(~0x20, 8)
+    );
+    allEqual =
+        _sym_build_bool_and(allEqual, _sym_build_equal(lowercase_a_expr, lowercase_b_expr));
+  }
+
+  _sym_push_path_constraint(allEqual, result == 0,
+                            reinterpret_cast<uintptr_t>(SYM(strncasecmp)));
+  return result;
+}
+
+
 int SYM(strcmp)(const char *a, const char *b) {
   auto len = strlen(b) + 1;
   return SYM(strncmp)(a, b, len);
