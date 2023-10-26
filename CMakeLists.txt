@@ -19,6 +19,14 @@ option(QSYM_BACKEND "Use the Qsym backend instead of our own" OFF)
 option(RUST_BACKEND "Build the support code required for a Rust backend as a static archive." OFF)
 option(TARGET_32BIT "Make the compiler work correctly with -m32" OFF)
 
+# take the path to the symcc_runtime_dir library from the environment if it is set
+if (NOT SYM_RUNTIME_DIR)
+  set(SYM_RUNTIME_DIR "$ENV{SYMCC_RUNTIME_DIR}")
+endif()
+if (NOT SYM_RUNTIME_DIR)
+  set(SYM_RUNTIME_DIR "$ENV{SYM_RUNTIME_DIR}")
+endif()
+
 # We need to build the runtime as an external project because CMake otherwise
 # doesn't allow us to build it twice with different options (one 32-bit version
 # and one 64-bit variant).
@@ -45,18 +53,24 @@ set(SYM_RUNTIME_BUILD_ARGS
   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   -DZ3_TRUST_SYSTEM_VERSION=${Z3_TRUST_SYSTEM_VERSION})
 
-ExternalProject_Add(SymRuntime
-  SOURCE_DIR ${CMAKE_SOURCE_DIR}/runtime
-  CMAKE_ARGS
-  ${SYM_RUNTIME_BUILD_ARGS}
-  -DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}
-  -DZ3_DIR=${Z3_DIR}
-  -DLLVM_DIR=${LLVM_DIR}
-  INSTALL_COMMAND ""
-  BUILD_ALWAYS TRUE)
 
-ExternalProject_Get_Property(SymRuntime BINARY_DIR)
-set(SYM_RUNTIME_DIR ${BINARY_DIR})
+if (NOT SYM_RUNTIME_DIR)
+  message(STATUS "SYM_RUNTIME_DIR not set; building runtime as an external project.")
+  set(SYM_RUNTIME_BUILD_ARGS ${SYM_RUNTIME_BUILD_ARGS} -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/runtime)
+
+  ExternalProject_Add(SymRuntime
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/runtime
+    CMAKE_ARGS
+    ${SYM_RUNTIME_BUILD_ARGS}
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}
+    -DZ3_DIR=${Z3_DIR}
+    -DLLVM_DIR=${LLVM_DIR}
+    INSTALL_COMMAND ""
+    BUILD_ALWAYS TRUE)
+
+  ExternalProject_Get_Property(SymRuntime BINARY_DIR)
+  set(SYM_RUNTIME_DIR ${BINARY_DIR})
+endif()
 
 if (${TARGET_32BIT})
   ExternalProject_Add(SymRuntime32
