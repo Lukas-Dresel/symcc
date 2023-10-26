@@ -206,7 +206,7 @@ bool isInterceptedFunction(const Function &f) {
 
       "bsearch", "qsort", "qsort_r", // to handle the callbacks
       "bcmp", // to handle memcmp optimization which later gets replaced by `bcmp` which then gets inlined later without instrumentation (bad)
-      "strcmp", "strncmp", // to handle comparisons
+      "strcmp", "strncmp", "strncasecmp", // to handle comparisons
   };
 
   return (kInterceptedFunctions.count(f.getName()) > 0);
