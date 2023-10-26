@@ -539,6 +539,18 @@ int SYM(strncasecmp)(const char* a, const char* b, size_t n) {
   for (size_t i = 1; i < real_len; i++) {
     ++aShadowIt;
     ++bShadowIt;
+
+    auto a_is_case_sensitive_ascii = _sym_build_or(
+      _sym_build_bool_and(
+        _sym_build_unsigned_greater_than(*aShadowIt, _sym_build_integer('A', 8)),
+        _sym_build_unsigned_less_than(*aShadowIt, _sym_build_integer('Z', 8))
+      ),
+      _sym_build_bool_and(
+        _sym_build_unsigned_greater_than(*aShadowIt, _sym_build_integer('a', 8)),
+        _sym_build_unsigned_less_than(*aShadowIt, _sym_build_integer('z', 8))
+      )
+    );
+
     auto lowercase_a_expr = _sym_build_and(
       *aShadowIt,
       _sym_build_integer(~0x20, 8)
@@ -547,8 +559,17 @@ int SYM(strncasecmp)(const char* a, const char* b, size_t n) {
       *bShadowIt,
       _sym_build_integer(~0x20, 8)
     );
+    auto character_is_equivalent = _sym_build_bool_or(
+      // either a is not in the ascii range, then it must be strictly equal
+      _sym_build_equal(*aShadowIt, *bShadowIt),
+      // or a is in the ascii range, then we need to check if its lowercase equivalent is equal to b's
+      _sym_build_and(
+        a_is_case_sensitive_ascii,
+        _sym_build_equal(lowercase_a_expr, lowercase_b_expr)
+      )
+    );
     allEqual =
-        _sym_build_bool_and(allEqual, _sym_build_equal(lowercase_a_expr, lowercase_b_expr));
+        _sym_build_bool_and(allEqual, character_is_equivalent);
   }
 
   _sym_push_path_constraint(allEqual, result == 0,
