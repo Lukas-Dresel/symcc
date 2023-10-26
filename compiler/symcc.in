@@ -41,11 +41,10 @@ fi
 total_extra_cflags="$SYMCC_EXTRA_CFLAGS"
 total_extra_ldflags="$SYMCC_EXTRA_LDFLAGS"
 exec $compiler                                  \
-     @CLANG_LOAD_PASS@"$pass"              \
+     @CLANG_LOAD_PASS@"$pass"                   \
      $total_extra_cflags                        \
      "$@"                                       \
      $total_extra_ldflags                       \
      -L"$runtime_dir"                           \
      -lSymRuntime                               \
-     -Wl,-rpath,"$runtime_dir"                  \
      -Qunused-arguments

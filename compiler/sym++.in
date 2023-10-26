@@ -67,5 +67,4 @@ exec $compiler                                  \
      $total_extra_ldflags                       \
      -L"$runtime_dir"                           \
      -lSymRuntime                               \
-     -Wl,-rpath,"$runtime_dir"                  \
      -Qunused-arguments
