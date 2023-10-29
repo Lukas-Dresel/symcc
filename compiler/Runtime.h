@@ -35,6 +35,7 @@ struct Runtime {
   SymFnT buildTrue{};
   SymFnT buildFalse{};
   SymFnT buildBool{};
+  SymFnT buildIte{};
   SymFnT buildSExt{};
   SymFnT buildZExt{};
   SymFnT buildTrunc{};
