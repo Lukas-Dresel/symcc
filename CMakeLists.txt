@@ -154,6 +154,7 @@ configure_file("compiler/sym++.in" "sym++" @ONLY)
 add_custom_target(libc_harness ALL
   COMMAND ${CMAKE_COMMAND} -E env SYMCC_RUNTIME_DIR=${SYM_RUNTIME_DIR} CC=${CMAKE_BINARY_DIR}/symcc CXX=${CMAKE_BINARY_DIR}/sym++ BUILD_DIR=${CMAKE_BINARY_DIR} SYMCC_NO_LIBC_HARNESS=1 SYMCC_NO_SYMBOLIC_INPUT=1 make -C ${CMAKE_SOURCE_DIR}/libc_harness
 )
+add_dependencies(libc_harness Symbolize)
 
 
 # set the AFL_DIR if not already set from environment to `realpath ${CMAKE_SOURCE_DIR}/../AFLPlusplus`
