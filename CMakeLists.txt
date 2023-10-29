@@ -148,6 +148,14 @@ endif()
 configure_file("compiler/symcc.in" "symcc" @ONLY)
 configure_file("compiler/sym++.in" "sym++" @ONLY)
 
+# now that the compilers are built, use them to build the libc_harness using its Makefile
+# to do so, we have to set the environment variables CC and CXX to the symcc wrappers and BUILD_DIR to our build
+# directory
+add_custom_target(libc_harness ALL
+  COMMAND ${CMAKE_COMMAND} -E env SYMCC_RUNTIME_DIR=${SYM_RUNTIME_DIR} CC=${CMAKE_BINARY_DIR}/symcc CXX=${CMAKE_BINARY_DIR}/sym++ BUILD_DIR=${CMAKE_BINARY_DIR} SYMCC_NO_LIBC_HARNESS=1 SYMCC_NO_SYMBOLIC_INPUT=1 make -C ${CMAKE_SOURCE_DIR}/libc_harness
+)
+
+
 # set the AFL_DIR if not already set from environment to `realpath ${CMAKE_SOURCE_DIR}/../AFLPlusplus`
 if (NOT AFL_DIR)
   get_filename_component(AFL_DIR "${CMAKE_SOURCE_DIR}/../AFLPlusplus" REALPATH)
@@ -156,5 +164,6 @@ configure_file("compiler/symcc-afl-clang.in" "symcc-afl-clang" @ONLY)
 configure_file("compiler/symcc-afl-clang++.in" "symcc-afl-clang++" @ONLY)
 configure_file("compiler/afl-clang-fast.in" "afl-clang-fast" @ONLY)
 configure_file("compiler/afl-clang-fast++.in" "afl-clang-fast++" @ONLY)
+
 
 add_subdirectory(test)

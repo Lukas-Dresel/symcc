@@ -14,11 +14,14 @@
 # You should have received a copy of the GNU General Public License along with
 # SymCC. If not, see <https://www.gnu.org/licenses/>.
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
 runtime_64bit_dir="${SYMCC_RUNTIME_DIR:-@SYM_RUNTIME_DIR@}"
 runtime_32bit_dir="${SYMCC_RUNTIME32_DIR:-@SYM_RUNTIME_32BIT_DIR@}"
 pass="${SYMCC_PASS_DIR:-@CMAKE_CURRENT_BINARY_DIR@}/libSymbolize.so"
 libcxx_var=SYMCC_LIBCXX_PATH
 compiler="${SYMCC_CLANGPP:-@CLANGPP_BINARY@}"
+libc_harness_dir="${SYMCC_LIBC_HARNESS_DIR:-$SCRIPT_DIR/}"
 
 # Find out if we're cross-compiling for a 32-bit architecture
 runtime_dir="$runtime_64bit_dir"
@@ -59,6 +62,11 @@ if [ $# -eq 0 ]; then
 fi
 total_extra_cflags="$stdlib_cflags $SYMCC_EXTRA_CFLAGS"
 total_extra_ldflags="$stdlib_ldflags $SYMCC_EXTRA_LDFLAGS"
+
+# if SYMCC_NO_LIBC_HARNESS is set, don't link against the libc harness
+if [[ -z "$SYMCC_NO_LIBC_HARNESS" ]]; then
+    total_extra_ldflags="$total_extra_ldflags -L$libc_harness_dir -l:libc_harness.a"
+fi
 
 exec $compiler                                  \
      @CLANG_LOAD_PASS@"$pass"              \
