@@ -148,6 +148,23 @@ endif()
 configure_file("compiler/symcc.in" "symcc" @ONLY)
 configure_file("compiler/sym++.in" "sym++" @ONLY)
 
+# copy the libSymRuntime.so and libSymRuntime.a into the build dir in runtime_32 and runtime_64
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/runtime_64)
+add_custom_target(copy_runtime ALL
+  COMMAND ${CMAKE_COMMAND} -E copy ${SYM_RUNTIME_DIR}/libSymRuntime.so ${CMAKE_BINARY_DIR}/runtime_64/libSymRuntime.so
+  COMMAND ${CMAKE_COMMAND} -E copy ${SYM_RUNTIME_DIR}/libSymRuntime.a ${CMAKE_BINARY_DIR}/runtime_64/libSymRuntime.a
+)
+add_dependencies(copy_runtime SymRuntime)
+
+if (${TARGET_32BIT})
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/runtime_32)
+  add_custom_target(copy_runtime32 ALL
+    COMMAND ${CMAKE_COMMAND} -E copy ${SYM_RUNTIME_32BIT_DIR}/libSymRuntime.so ${CMAKE_BINARY_DIR}/runtime_32/libSymRuntime32.so
+    COMMAND ${CMAKE_COMMAND} -E copy ${SYM_RUNTIME_32BIT_DIR}/libSymRuntime.a ${CMAKE_BINARY_DIR}/runtime_32/libSymRuntime32.a
+  )
+  add_dependencies(copy_runtime32 SymRuntime32)
+endif()
+
 # now that the compilers are built, use them to build the libc_harness using its Makefile
 # to do so, we have to set the environment variables CC and CXX to the symcc wrappers and BUILD_DIR to our build
 # directory
