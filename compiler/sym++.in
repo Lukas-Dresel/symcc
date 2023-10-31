@@ -19,7 +19,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 runtime_64bit_dir="${SYMCC_RUNTIME_DIR:-$SCRIPT_DIR/runtime_64/}"
 runtime_32bit_dir="${SYMCC_RUNTIME32_DIR:-$SCRIPT_DIR/runtime_32/}"
 pass="${SYMCC_PASS_DIR:-@CMAKE_CURRENT_BINARY_DIR@}/libSymbolize.so"
-libcxx_var=SYMCC_LIBCXX_PATH
+libcxx_var="${SYMCC_LIBCXX_PATH:-@SYMCC_LIBCXX_PATH@}"
 compiler="${SYMCC_CLANGPP:-@CLANGPP_BINARY@}"
 libc_harness_dir="${SYMCC_LIBC_HARNESS_DIR:-$SCRIPT_DIR/}"
 

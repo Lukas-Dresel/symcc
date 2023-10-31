@@ -26,6 +26,9 @@ endif()
 if (NOT SYM_RUNTIME_DIR)
   set(SYM_RUNTIME_DIR "$ENV{SYM_RUNTIME_DIR}")
 endif()
+if (NOT SYMCC_LIBCXX_PATH)
+  set(SYMCC_LIBCXX_PATH "$ENV{SYMCC_LIBCXX_PATH}")
+endif()
 
 # We need to build the runtime as an external project because CMake otherwise
 # doesn't allow us to build it twice with different options (one 32-bit version
