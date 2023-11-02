@@ -19,9 +19,16 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 runtime_64bit_dir="${SYMCC_RUNTIME_DIR:-$SCRIPT_DIR/runtime_64/}"
 runtime_32bit_dir="${SYMCC_RUNTIME32_DIR:-$SCRIPT_DIR/runtime_32/}"
 pass="${SYMCC_PASS_DIR:-@CMAKE_CURRENT_BINARY_DIR@}/libSymbolize.so"
-libcxx_var="${SYMCC_LIBCXX_PATH:-@SYMCC_LIBCXX_PATH@}"
+libcxx_var="SYMCC_LIBCXX_PATH" # varname for the libc++ path
 compiler="${SYMCC_CLANGPP:-@CLANGPP_BINARY@}"
 libc_harness_dir="${SYMCC_LIBC_HARNESS_DIR:-$SCRIPT_DIR/}"
+
+libcxx_path="@SYMCC_LIBCXX_PATH@"
+if [[ -v $libcxx_var ]]; then
+    libcxx_path="${!libcxx_var}"
+fi
+
+# now, libcxx_path is either still empty or has been set by config or overriden in the environment
 
 # Find out if we're cross-compiling for a 32-bit architecture
 runtime_dir="$runtime_64bit_dir"
@@ -41,7 +48,7 @@ done
 if [[ -v SYMCC_REGULAR_LIBCXX ]]; then
     stdlib_cflags=
     stdlib_ldflags=
-elif [[ ! -v $libcxx_var ]]; then
+elif [[ -z "$libcxx_path" ]]; then
     >&2 echo "Please set $libcxx_var to the directory containing libc++ or confirm usage of the system library by setting SYMCC_REGULAR_LIBCXX!"
     exit 255
 else
