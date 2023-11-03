@@ -16,7 +16,9 @@
 
 set -x
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+SCRIPT_PATH_RESOLVED="$(realpath "$SCRIPT_PATH")"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH_RESOLVED")" >/dev/null 2>&1 && pwd)"
 
 runtime_64bit_dir="${SYMCC_RUNTIME_DIR:-@SYM_RUNTIME_DIR@}"
 runtime_32bit_dir="${SYMCC_RUNTIME32_DIR:-@SYM_RUNTIME_32BIT_DIR@}"
