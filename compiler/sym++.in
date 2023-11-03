@@ -40,6 +40,10 @@ for arg in "$@"; do
         else
             runtime_dir="$runtime_32bit_dir"
             libcxx_var=SYMCC_LIBCXX_32BIT_PATH
+            libcxx_path="@SYMCC_LIBCXX_32BIT_PATH@"
+            if [[ -v $libcxx_var ]]; then
+                libcxx_path="${!libcxx_var}"
+            fi
             break
         fi
     fi
@@ -48,7 +52,7 @@ done
 if [[ -v SYMCC_REGULAR_LIBCXX ]]; then
     stdlib_cflags=
     stdlib_ldflags=
-elif [[ -z "$libcxx_path" ]]; then
+elif [[ -z "${libcxx_path}" ]]; then
     >&2 echo "Please set $libcxx_var to the directory containing libc++ or confirm usage of the system library by setting SYMCC_REGULAR_LIBCXX!"
     exit 255
 else
@@ -56,10 +60,10 @@ else
     # otherwise our backend calls the instrumented library in cases where
     # exported names collide.
     stdlib_cflags="-nostdinc++ -nostdlib++"
-    stdlib_cflags="$stdlib_cflags -isystem ${!libcxx_var}/include/c++/v1"
-    stdlib_cflags="$stdlib_cflags -isystem ${!libcxx_var}/include/x86_64-unknown-linux-gnu/c++/v1"
-    stdlib_ldflags="-L${!libcxx_var}/lib -Wl,-rpath,${!libcxx_var}/lib"
-    stdlib_ldflags="$stdlib_ldflags -L${!libcxx_var}/lib/x86_64-unknown-linux-gnu -Wl,-rpath,${!libcxx_var}/lib/x86_64-unknown-linux-gnu"
+    stdlib_cflags="$stdlib_cflags -isystem ${libcxx_path}/include/c++/v1"
+    stdlib_cflags="$stdlib_cflags -isystem ${libcxx_path}/include/x86_64-unknown-linux-gnu/c++/v1"
+    stdlib_ldflags="-L${libcxx_path}/lib -Wl,-rpath,${libcxx_path}/lib"
+    stdlib_ldflags="$stdlib_ldflags -L${libcxx_path}/lib/x86_64-unknown-linux-gnu -Wl,-rpath,${libcxx_path}/lib/x86_64-unknown-linux-gnu"
     stdlib_ldflags="$stdlib_ldflags -lstdc++ -lc++ -stdlib=libc++"
 fi
 
