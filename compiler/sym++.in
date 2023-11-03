@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License along with
 # SymCC. If not, see <https://www.gnu.org/licenses/>.
 
+set -x
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 runtime_64bit_dir="${SYMCC_RUNTIME_DIR:-$SCRIPT_DIR/runtime_64/}"
