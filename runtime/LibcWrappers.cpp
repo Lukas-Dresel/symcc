@@ -492,6 +492,32 @@ int SYM(memcmp)(const void *a, const void *b, size_t n) {
   return result;
 }
 
+int SYM(bcmp)(const void *a, const void *b, size_t n) {
+  _sym_concretize_pointer(_sym_get_parameter_expression(0), a, (uintptr_t)SYM(memcmp));
+  _sym_concretize_pointer(_sym_get_parameter_expression(1), b, (uintptr_t)SYM(memcmp));
+  _sym_concretize_size(_sym_get_parameter_expression(2), n, (uintptr_t)SYM(memcmp));
+
+  auto result = memcmp(a, b, n);
+  _sym_set_return_expression(nullptr);
+
+  if (isConcrete(a, n) && isConcrete(b, n))
+    return result;
+
+  auto aShadowIt = ReadOnlyShadow(a, n).begin_non_null();
+  auto bShadowIt = ReadOnlyShadow(b, n).begin_non_null();
+  auto *allEqual = _sym_build_equal(*aShadowIt, *bShadowIt);
+  for (size_t i = 1; i < n; i++) {
+    ++aShadowIt;
+    ++bShadowIt;
+    allEqual =
+        _sym_build_bool_and(allEqual, _sym_build_equal(*aShadowIt, *bShadowIt));
+  }
+
+  _sym_push_path_constraint(allEqual, result == 0,
+                            reinterpret_cast<uintptr_t>(SYM(memcmp)));
+  return result;
+}
+
 int SYM(strncmp)(const char *a, const char *b, size_t n) {
   _sym_concretize_pointer(_sym_get_parameter_expression(0), a, (uintptr_t)SYM(strncmp));
   _sym_concretize_pointer(_sym_get_parameter_expression(1), b, (uintptr_t)SYM(strncmp));
@@ -577,29 +603,54 @@ int SYM(strncasecmp)(const char* a, const char* b, size_t n) {
   return result;
 }
 
-
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 int SYM(strcmp)(const char *a, const char *b) {
-  auto len = strlen(b) + 1;
+  size_t len_a = strlen(a);
+  size_t len_b = strlen(b);
+  auto len = MAX(len_a, len_b) + 1;
   return SYM(strncmp)(a, b, len);
 }
-
-uint32_t SYM(ntohl)(uint32_t netlong) {
-  auto netlongExpr = _sym_get_parameter_expression(0);
-  auto result = ntohl(netlong);
-
-  if (netlongExpr == nullptr) {
-    _sym_set_return_expression(nullptr);
-    return result;
-  }
+int SYM(strcasecmp)(const char* a, const char* b) {
+  size_t len_a = strlen(a);
+  size_t len_b = strlen(b);
+  auto len = MAX(len_a, len_b) + 1;
+  return SYM(strncasecmp)(a, b, len);
+}
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-  _sym_set_return_expression(_sym_build_bswap(netlongExpr));
+  #define BYTESWAPIMPL(typetype, funcfunc)                        \
+  typetype SYM(funcfunc)(typetype netlong) {                      \
+      auto netlongExpr = _sym_get_parameter_expression(0);        \
+      auto result = funcfunc(netlong);                            \
+                                                                  \
+      if (netlongExpr == nullptr) {                               \
+        _sym_set_return_expression(nullptr);                      \
+        return result;                                            \
+      }                                                           \
+      _sym_set_return_expression(_sym_build_bswap(netlongExpr));  \
+      return result;                                              \
+    }
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-  _sym_set_return_expression(netlongExpr);
+  #define BYTESWAPIMPL(typetype, funcfunc)                        \
+  typetype SYM(funcfunc)(typetype netlong) {                      \
+      auto netlongExpr = _sym_get_parameter_expression(0);        \
+      auto result = funcfunc(netlong);                            \
+                                                                  \
+      if (netlongExpr == nullptr) {                               \
+        _sym_set_return_expression(nullptr);                      \
+        return result;                                            \
+      }                                                           \
+      _sym_set_return_expression(netlongExpr);  \
+      return result;                                              \
+    }
 #else
-#error Unsupported __BYTE_ORDER__
+  #error Unsupported __BYTE_ORDER__
 #endif
 
-  return result;
-}
-}
+BYTESWAPIMPL(uint32_t, ntohl)
+BYTESWAPIMPL(uint32_t, htonl)
+BYTESWAPIMPL(uint16_t, ntohs)
+BYTESWAPIMPL(uint16_t, htons)
+
+
+} // extern "C"

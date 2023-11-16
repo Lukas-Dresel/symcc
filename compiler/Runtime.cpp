@@ -202,11 +202,15 @@ bool isInterceptedFunction(const Function &f) {
       "malloc",   "calloc",  "mmap",    "mmap64", "open",   "read",    "lseek",
       "lseek64",  "fopen",   "fopen64", "fread",  "fseek",  "fseeko",  "rewind",
       "fseeko64", "getc",    "ungetc",  "memcpy", "memset", "strncpy", "strchr",
-      "memcmp",   "memmove", "ntohl",   "fgets",  "fgetc", "getchar",
+      "memcmp",   "memmove",
+      "ntohl", "htonl", "ntohs", "htons",
+      "fgets",  "fgetc", "getchar",
+
+      "bcmp", // to handle memcmp optimization which later gets replaced by `bcmp` which then gets inlined later without instrumentation (bad)
+      "strcmp", "strncmp", "strcasecmp", "strncasecmp", // to handle comparisons
+
 
       "bsearch", "qsort", "qsort_r", // to handle the callbacks
-      "bcmp", // to handle memcmp optimization which later gets replaced by `bcmp` which then gets inlined later without instrumentation (bad)
-      "strcmp", "strncmp", "strncasecmp", // to handle comparisons
   };
 
   return (kInterceptedFunctions.count(f.getName()) > 0);
