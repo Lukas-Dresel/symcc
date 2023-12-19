@@ -209,7 +209,6 @@ bool isInterceptedFunction(const Function &f) {
       "bcmp", // to handle memcmp optimization which later gets replaced by `bcmp` which then gets inlined later without instrumentation (bad)
       "strcmp", "strncmp", "strcasecmp", "strncasecmp", // to handle comparisons
 
-
       "bsearch", "qsort", "qsort_r", // to handle the callbacks
   };
 

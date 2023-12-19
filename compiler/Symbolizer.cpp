@@ -189,7 +189,7 @@ void Symbolizer::handleIntrinsicCall(CallBase &I) {
   case Intrinsic::trap:
   case Intrinsic::invariant_start:
   case Intrinsic::invariant_end:
-  case Intrinsic::assume:
+  case Intrinsic::ubsantrap:
     // These are safe to ignore.
     break;
   case Intrinsic::memcpy: {
@@ -285,6 +285,11 @@ void Symbolizer::handleIntrinsicCall(CallBase &I) {
     IRBuilder<> IRB(&I);
     auto swapped = buildRuntimeCall(IRB, runtime.buildBswap, I.getOperand(0));
     registerSymbolicComputation(swapped, &I);
+    break;
+  }
+  case Intrinsic::assume: {
+    // Assume is a hint for the optimizer; we just ignore it.
+    // TODO: this leads to undefined behavior if not true, we should add a path constraint here.
     break;
   }
   default:
