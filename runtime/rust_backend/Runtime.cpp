@@ -451,11 +451,11 @@ void _sym_collect_garbage() {
 #endif
 }
 
-size_t get_symbolic_exprs_for_memory(SymExpr* out, const void *addr, size_t nbytes) {
+size_t get_symbolic_exprs_for_memory(RSymExpr* out, const void *addr, size_t nbytes) {
   size_t count = 0;
   ReadOnlyShadow shadow(addr, nbytes);
   for (auto expr : shadow) {
-    out[count++] = expr;
+    out[count++] = symexpr_id(expr);
   }
   assert (count == nbytes);
   return count;

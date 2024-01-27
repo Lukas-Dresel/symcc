@@ -196,7 +196,7 @@ void _rsym_expression_unreachable(RSymExpr *expressions, size_t num_elements);
 /*
  * Shadow memory access
  */
-void get_symbolic_exprs_for_memory(SymExpr* out, void* addr, size_t sz);
+void get_symbolic_exprs_for_memory(RSymExpr* out, void* addr, size_t sz);
 
 #ifdef __cplusplus
 }
