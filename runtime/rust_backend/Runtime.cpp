@@ -450,3 +450,14 @@ void _sym_collect_garbage() {
             << " milliseconds)" << std::endl;
 #endif
 }
+
+void _sym_get_memory_byte_expressions(SymExpr* out, void* addr, size_t sz) {
+  ReadOnlyShadow shadow(addr, sz);
+
+  int i = 0;
+  for (auto it = shadow.begin(); it != shadow.end(); ++it) {
+    *out = registerExpression(*it);
+    i += 1;
+  }
+  assert(i == sz);
+}

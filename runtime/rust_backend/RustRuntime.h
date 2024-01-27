@@ -193,6 +193,11 @@ void _rsym_notify_ret_expr(RSymExpr expr);
  */
 void _rsym_expression_unreachable(RSymExpr *expressions, size_t num_elements);
 
+/*
+ * Shadow memory access
+ */
+void _sym_get_memory_byte_expressions(SymExpr* out, void* addr, size_t sz);
+
 #ifdef __cplusplus
 }
 #endif
