@@ -968,7 +968,7 @@ void Symbolizer::concretizePointer(IRBuilder<> &IRB, Value* V) {
     return;
   }
   auto castop = llvm::Instruction::CastOps::BitCast;
-  auto casted = IRB.CreateCast(castop, destExpr, IRB.getInt8PtrTy());
+  auto casted = IRB.CreateCast(castop, V, IRB.getInt8PtrTy());
   IRB.CreateCall(runtime.concretizePointer, {destExpr, casted, getTargetPreferredInt(V)});
 }
 void Symbolizer::concretizeSize(IRBuilder<> &IRB, Value* V) {
