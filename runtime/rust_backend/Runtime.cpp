@@ -451,7 +451,7 @@ void _sym_collect_garbage() {
 #endif
 }
 
-size_t get_symbolic_exprs_for_memory(RSymExpr* out, const void *addr, size_t nbytes) {
+size_t _sym_get_symbolic_exprs_for_memory(RSymExpr* out, const void *addr, size_t nbytes) {
   size_t count = 0;
   ReadOnlyShadow shadow(addr, nbytes);
   for (auto expr : shadow) {
