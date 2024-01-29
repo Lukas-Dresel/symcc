@@ -410,6 +410,17 @@ const char *_sym_expr_to_string(SymExpr) { return nullptr; }
 
 bool _sym_feasible(SymExpr) { return false; }
 
+extern "C" {
+  void _sym_get_symbolic_exprs_for_memory(RSymExpr* out, const void *addr, size_t nbytes) {
+    size_t count = 0;
+    ReadOnlyShadow shadow(addr, nbytes);
+    for (auto expr : shadow) {
+      out[count++] = symexpr_id(expr);
+    }
+    assert (count == nbytes);
+  }
+}
+
 /* Garbage collection */
 void _sym_collect_garbage() {
   if (allocatedExpressions.size() < g_config.garbageCollectionThreshold)
@@ -451,12 +462,3 @@ void _sym_collect_garbage() {
 #endif
 }
 
-size_t _sym_get_symbolic_exprs_for_memory(RSymExpr* out, const void *addr, size_t nbytes) {
-  size_t count = 0;
-  ReadOnlyShadow shadow(addr, nbytes);
-  for (auto expr : shadow) {
-    out[count++] = symexpr_id(expr);
-  }
-  assert (count == nbytes);
-  return count;
-}
