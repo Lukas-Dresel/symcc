@@ -95,7 +95,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   target_link_libraries(SymRuntime stdc++fs)
 endif()
 
-
 # copy libSymRuntime.a to the top-level output directory from the simple_backend/ directory
 add_custom_command(TARGET SymRuntime POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SymRuntime> ${CMAKE_BINARY_DIR}/libSymRuntime.a
