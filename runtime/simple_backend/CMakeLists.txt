@@ -40,3 +40,8 @@ target_include_directories(SymRuntime PRIVATE
   ${Z3_C_INCLUDE_DIRS})
 
 set_target_properties(SymRuntime PROPERTIES COMPILE_FLAGS "-Werror -Wno-error=deprecated-declarations")
+
+# copy libSymRuntime.a to the top-level output directory from the simple_backend/ directory
+add_custom_command(TARGET SymRuntime POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SymRuntime> ${CMAKE_BINARY_DIR}/libSymRuntime.a
+  COMMENT "Copying libSymRuntime.a to the top-level output directory")

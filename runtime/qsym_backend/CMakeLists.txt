@@ -55,7 +55,7 @@ configure CMake with -DZ3_TRUST_SYSTEM_VERSION=on (see also docs/Configuration.t
   endif()
 endif()
 
-add_library(SymRuntime SHARED
+add_library(SymRuntime STATIC
   ${CMAKE_CURRENT_BINARY_DIR}/expr__gen.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/expr_builder__gen.cpp
   ${QSYM_SOURCE_DIR}/expr_cache.cpp
@@ -94,3 +94,9 @@ target_link_libraries(SymRuntime ${Z3_LIBRARIES} ${QSYM_LLVM_DEPS})
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   target_link_libraries(SymRuntime stdc++fs)
 endif()
+
+
+# copy libSymRuntime.a to the top-level output directory from the simple_backend/ directory
+add_custom_command(TARGET SymRuntime POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SymRuntime> ${CMAKE_BINARY_DIR}/libSymRuntime.a
+  COMMENT "Copying libSymRuntime.a to the top-level output directory")
