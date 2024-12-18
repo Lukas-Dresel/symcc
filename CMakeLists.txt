@@ -155,7 +155,7 @@ configure_file("compiler/sym++.in" "sym++" @ONLY)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/runtime_64)
 add_custom_target(copy_runtime ALL
   COMMAND ${CMAKE_COMMAND} -E copy ${SYM_RUNTIME_DIR}/libSymRuntime.so ${CMAKE_BINARY_DIR}/runtime_64/libSymRuntime.so
-  COMMAND ${CMAKE_COMMAND} -E copy ${SYM_RUNTIME_DIR}/libSymRuntime.a ${CMAKE_BINARY_DIR}/runtime_64/libSymRuntime.a
+  # COMMAND ${CMAKE_COMMAND} -E copy ${SYM_RUNTIME_DIR}/libSymRuntime.a ${CMAKE_BINARY_DIR}/runtime_64/libSymRuntime.a
 )
 add_dependencies(copy_runtime SymRuntime)
 
@@ -163,7 +163,7 @@ if (${TARGET_32BIT})
   file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/runtime_32)
   add_custom_target(copy_runtime32 ALL
     COMMAND ${CMAKE_COMMAND} -E copy ${SYM_RUNTIME_32BIT_DIR}/libSymRuntime.so ${CMAKE_BINARY_DIR}/runtime_32/libSymRuntime32.so
-    COMMAND ${CMAKE_COMMAND} -E copy ${SYM_RUNTIME_32BIT_DIR}/libSymRuntime.a ${CMAKE_BINARY_DIR}/runtime_32/libSymRuntime32.a
+    # COMMAND ${CMAKE_COMMAND} -E copy ${SYM_RUNTIME_32BIT_DIR}/libSymRuntime.a ${CMAKE_BINARY_DIR}/runtime_32/libSymRuntime32.a
   )
   add_dependencies(copy_runtime32 SymRuntime32)
 endif()
