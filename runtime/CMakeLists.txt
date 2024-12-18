@@ -27,6 +27,7 @@ option(Z3_TRUST_SYSTEM_VERSION "Use the system-provided Z3 without a version che
 
 # Place the final product in the top-level output directory
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # There is list(TRANSFORM ... PREPEND ...), but it's not available before CMake 3.12.
 set(SHARED_RUNTIME_SOURCES
