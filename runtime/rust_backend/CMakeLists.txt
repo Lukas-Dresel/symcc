@@ -16,6 +16,10 @@ add_library(SymRuntime SHARED
   ${SHARED_RUNTIME_SOURCES}
   Runtime.cpp)
 
+add_library(SymRuntimeStatic STATIC
+  ${SHARED_RUNTIME_SOURCES}
+  Runtime.cpp)
+
 target_include_directories(SymRuntime PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/..)
@@ -23,3 +27,4 @@ target_include_directories(SymRuntime PRIVATE
 set_target_properties(SymRuntime PROPERTIES COMPILE_FLAGS "-Werror")
 
 INSTALL(TARGETS SymRuntime)
+INSTALL(TARGETS SymRuntimeStatic)
