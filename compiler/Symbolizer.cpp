@@ -189,7 +189,9 @@ void Symbolizer::handleIntrinsicCall(CallBase &I) {
   case Intrinsic::trap:
   case Intrinsic::invariant_start:
   case Intrinsic::invariant_end:
+  #if LLVM_VERSION_MAJOR >= 13
   case Intrinsic::ubsantrap:
+  #endif
     // These are safe to ignore.
     break;
   case Intrinsic::memcpy: {
