@@ -20,11 +20,19 @@ add_library(SymRuntimeStatic STATIC
   ${SHARED_RUNTIME_SOURCES}
   Runtime.cpp)
 
+set_property(TARGET SymRuntime PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET SymRuntimeStatic PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(SymRuntime PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
+target_include_directories(SymRuntimeStatic PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
 set_target_properties(SymRuntime PROPERTIES COMPILE_FLAGS "-Werror")
+set_target_properties(SymRuntimeStatic PROPERTIES COMPILE_FLAGS "-Werror")
 
 INSTALL(TARGETS SymRuntime)
 INSTALL(TARGETS SymRuntimeStatic)
